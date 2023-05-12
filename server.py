@@ -1,5 +1,5 @@
 import socket
-import threading 
+import threading
 
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -11,8 +11,11 @@ server_socket.listen()
 print("Server is up and running!")
 
 
+# Clients currently connected
 clients = []
+# All clients that have been connected at some point
 users = []
+# All names in the users list
 names = []
 
 available_commands = {
@@ -22,13 +25,13 @@ available_commands = {
     }
 
 
-
-def message_sender(msg, specified_client=None):
-    if not specified_client:
-        for client in clients:
-            client["connection"].send(msg.encode())
-    else:
+def message_sender(message, specified_client=None):
+    if specified_client:  # Whisper
         pass
+    else:  # Public message
+        for client in clients:
+            client["connection"].send(message.encode())
+
 
 def command_handler(client, command):
     if command == "nick":
@@ -41,20 +44,14 @@ def command_handler(client, command):
 
 
 def handle_active_clients(client):
-
     while True:
         try:
             msg: str = client["connection"].recv(1024).decode()
-
             if msg.startswith("/"):
-
                 command = available_commands.get(msg.split()[0])
                 command_handler(client, command)
-                
-
             else:
-                message_sender(f"{client['name']}: {msg}") 
-
+                message_sender(f"{client['name']}: {msg}")
         except ConnectionResetError:
             disconnected_user = client['name']
             clients.remove(client)
@@ -62,25 +59,19 @@ def handle_active_clients(client):
             message_sender(f"{disconnected_user} left the room")
             
 
-
-
-
 def connections():
-
     while True:
-
         client_connection, client_address = server_socket.accept()
-
         user_dict = {user["ip"]: user for user in users}
-
+        print(user_dict)
         if client_address[0] in user_dict:
             user = user_dict[client_address[0]]
             user["connection"] = client_connection
-
             clients.append(user)
 
         else:
-            new_user = {"name": "Guest",
+            new_user = {
+                        "name": "Guest",
                         "ip": client_address[0],
                         "port": client_address[1],
                         "connection": client_connection
@@ -93,12 +84,6 @@ def connections():
 
         thread = threading.Thread(target=handle_active_clients, args=(new_user,))
         thread.start()
-
-
-
-
-
-
 
 
 connections()
