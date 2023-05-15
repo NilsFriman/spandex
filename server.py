@@ -22,6 +22,7 @@ available_commands = {
     "/nick": "nick",
     "/admin": "admin",
     "/clear": "clear",
+    "/whisper": "whisper"
     }
 
 
@@ -33,24 +34,25 @@ def message_sender(message, specified_client=None):
             client["connection"].send(message.encode())
 
 
-def command_handler(client, command):
+def command_handler(client, command, message):
     if command == "nick":
-
-        client["connection"].send("Enter desired nickname".encode())
-
-        desired_nick = client["connection"].recv(1024).decode()
-
-        print(desired_nick)
+        print(client, message[6:])
+    elif command == "whisper":
+        print("ja du")
 
 
 def handle_active_clients(client):
     while True:
         try:
             message = client["connection"].recv(1024).decode()
-            if message[0] == "/":  # Client sends a command
-                command_handler(client, available_commands[message.split()[0]])
-            else:  # Client sends a normal message
-                message_sender(f"{client['name']}: {message}")
+            if message:
+                print(f"MESSAGE FROM {client}")
+                if message[0] == "/":  # Client sends a command
+                    command_handler(client, available_commands[message.split()[0]], message)
+                else:  # Client sends a normal message
+                    message_sender(f"{client['name']}: {message}")
+            else:
+                print("No message")
         except ConnectionResetError:
             disconnected_user = client['name']
             clients.pop(client)
