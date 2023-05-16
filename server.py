@@ -56,7 +56,6 @@ def command_handler(client, command, message):
 
 
 def client_handler(client):
-    message_sender("Now connected to server and handled individually.", specified_client=client)
     while True:
         try:
             message = client["connection"].recv(1024).decode()
