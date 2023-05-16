@@ -16,11 +16,16 @@ print("Server is up and running!")
 
 
 # Clients currently connected
+# Format: {IP: {"name": name, "port": port, "connection": connection}, IP: ...}
 clients = {}
 # All clients that have been connected at some point
+# Format: {IP: {"name": name, "port": port, "connection": connection}, IP: ...}
 users = {}
 # All names in the users list
+# Format: [name, name, name...]
 names = []
+# The current highest number guest
+guest_number = 0
 
 commands = {
     "/nick": "nick",
@@ -39,10 +44,15 @@ def message_sender(message, specified_client=None):
 
 
 def command_handler(client, command, message):
+    print(client)
     if command == "nick":
         print(client, message[6:])
     elif command == "whisper":
-        print("ja du")
+        recipient = message.split()[1]
+        for key, value in clients.items():
+            print(key, value)
+            if recipient == value["name"]:
+                message_sender(f"{client['name']} whispers to you: {' '.join(message.split()[2:])}", clients[key])
 
 
 def client_handler(client):
