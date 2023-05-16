@@ -82,7 +82,9 @@ def connections():
 
         else:  # New user
             # Creates new user in users
-            users[client_address[0]] = {"name": "Guest", "port": client_address[1], "connection": client_connection}
+            name = "Guest" + str(guest_number)
+            guest_number += 1
+            users[client_address[0]] = {"name": name, "port": client_address[1], "connection": client_connection}
             message_sender("Guest has entered the chat room")
 
         clients[client_address[0]] = users[client_address[0]]
