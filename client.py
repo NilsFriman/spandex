@@ -4,7 +4,7 @@ import threading
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-socket.connect(("192.168.0.83", 1234))
+socket.connect(("10.158.18.141", 1234))
 
 
 def receiver():

@@ -6,7 +6,11 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_host = socket.gethostbyname(socket.gethostname())
 server_port = 1234
 
-server_socket.bind(("", server_port))
+try:
+    server_socket.bind(("", server_port))
+except socket.error as error:
+    print(str(error))
+
 server_socket.listen()
 print("Server is up and running!")
 
@@ -18,7 +22,7 @@ users = {}
 # All names in the users list
 names = []
 
-available_commands = {
+commands = {
     "/nick": "nick",
     "/admin": "admin",
     "/clear": "clear",
@@ -30,7 +34,7 @@ def message_sender(message, specified_client=None):
     if specified_client:  # Whisper
         specified_client["connection"].send(message.encode())
     else:  # Public message
-        for client in clients:
+        for client in list(clients.values()):
             client["connection"].send(message.encode())
 
 
@@ -41,24 +45,21 @@ def command_handler(client, command, message):
         print("ja du")
 
 
-def handle_active_clients(client):
+def client_handler(client):
+    message_sender("Now connected to server and handled individually.", specified_client=client)
     while True:
         try:
             message = client["connection"].recv(1024).decode()
-            if message:
-                print(f"MESSAGE FROM {client}")
-                if message[0] == "/":  # Client sends a command
-                    command_handler(client, available_commands[message.split()[0]], message)
-                else:  # Client sends a normal message
-                    message_sender(f"{client['name']}: {message}")
-            else:
-                print("No message")
-        except ConnectionResetError:
+            if message[0] == "/":  # Client sends a command
+                command_handler(client, commands[message.split()[0]], message)
+            else:  # Client sends a normal message
+                message_sender(f"{client['name']}: {message}")
+        except ConnectionResetError:  # Client disconnected
             disconnected_user = client['name']
             clients.pop(client)
             client["connection"].close()
             message_sender(f"{disconnected_user} left the room")
-        except KeyError:
+        except KeyError:  # Client used a command that doesn't exist
             message_sender("Invalid command!", specified_client=client)
             
 
@@ -76,8 +77,7 @@ def connections():
             message_sender("Guest has entered the chat room")
 
         clients[client_address[0]] = users[client_address[0]]
-
-        thread = threading.Thread(target=handle_active_clients, args=(users[client_address[0]]))
+        thread = threading.Thread(target=client_handler, args=(users[client_address[0]],))
         thread.start()
 
 
