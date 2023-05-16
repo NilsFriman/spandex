@@ -24,3 +24,6 @@ recieve_thread.start()
 
 writer_thread = threading.Thread(target=writer)
 writer_thread.start()
+
+
+# Note: Client will receive ConnectionResetError when server shuts down
