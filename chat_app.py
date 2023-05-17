@@ -65,9 +65,10 @@ class chat_app(customtkinter.CTk):
 
 
     def message_sender(self, event):
-        self.chat_textbox.configure(state="normal")
-        self.chat_textbox.insert("1.0", f"{self.chat_entry.get()}\n")
-        self.chat_entry.delete(0, "end")
+        if len(self.chat_entry.get()) != 0:
+            self.chat_textbox.configure(state="normal")
+            self.chat_textbox.insert("1.0", f"{self.chat_entry.get()}\n")
+            self.chat_entry.delete(0, "end")
 
 
 
