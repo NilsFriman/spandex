@@ -44,35 +44,62 @@ def message_sender(message, specified_client=None):
 
 
 def command_handler(client, command, message):
-    print(client)
     if command == "nick":
-        print(client, message[6:])
+        nickname = message.split()[1]
+
+        if nickname in names:
+            message_sender(f"\"{nickname}\" is already taken", client)
+        else:
+            names.append(nickname)
+            client_ip = client["connection"].getsockname()[0]
+            users[client_ip]["name"] = nickname
+            clients[client_ip]["name"] = nickname
+            message_sender(f"Your new nickname is now \"{nickname}\"")
+
     elif command == "whisper":
         recipient = message.split()[1]
-        for key, value in clients.items():
-            print(key, value)
-            if recipient == value["name"]:
-                message_sender(f"{client['name']} whispers to you: {' '.join(message.split()[2:])}", clients[key])
+        recipient_found = False
 
+        for _, value in clients.items():
+            if recipient == value["name"]:
+                message_sender(f"{client['name']} whispers to you: {' '.join(message.split()[2:])}", value)
+                recipient_found = True
+                break
+
+        if not recipient_found:
+            if recipient in (users[user]["name"] for user in users.keys()):
+                message_sender("User is currently offline", client)
+            else:
+                message_sender("Unrecognized user", client)
+
+        
 
 def client_handler(client):
-    while True:
-        try:
-            message = client["connection"].recv(1024).decode()
-            if message[0] == "/":  # Client sends a command
-                command_handler(client, commands[message.split()[0]], message)
-            else:  # Client sends a normal message
-                message_sender(f"{client['name']}: {message}")
-        except ConnectionResetError:  # Client disconnected
-            disconnected_user = client['name']
-            clients.pop(client)
-            client["connection"].close()
-            message_sender(f"{disconnected_user} left the room")
-        except KeyError:  # Client used a command that doesn't exist
-            message_sender("Invalid command!", specified_client=client)
+    try:
+        while True:
+
+                message = client["connection"].recv(1024).decode()
+
+                if message[0] == "/":  # Client sends a command
+                    command_handler(client, commands[message.split()[0]], message)
+
+                else:  # Client sends a normal message
+                    message_sender(f"{client['name']}: {message}")
+
+    except ConnectionResetError:  # Client disconnected
+        disconnected_user = client['name']
+        clients.pop(client["connection"].getsockname()[0])
+        client["connection"].close()
+        message_sender(f"{disconnected_user} left the room")
+
+    except KeyError:  # Client used a command that doesn't exist
+        message_sender("Invalid command!", specified_client=client)
             
 
 def connections():
+
+    global guest_number
+
     while True:
         client_connection, client_address = server_socket.accept()
         # client_address includes many things, but client_address[0] is the IP address
@@ -83,7 +110,7 @@ def connections():
         else:  # New user
             # Creates new user in users
             name = "Guest" + str(guest_number)
-            guest_number += 1
+            guest_number += 1 
             users[client_address[0]] = {"name": name, "port": client_address[1], "connection": client_connection}
             message_sender("Guest has entered the chat room")
 
