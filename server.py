@@ -44,6 +44,7 @@ def message_sender(message, specified_client=None):
 
 
 def command_handler(client, command, message):
+
     if command == "nick":
         nickname = message.split()[1]
 
@@ -60,7 +61,7 @@ def command_handler(client, command, message):
         recipient = message.split()[1]
         recipient_found = False
 
-        for _, value in clients.items():
+        for _ , value in clients.items():
             if recipient == value["name"]:
                 message_sender(f"{client['name']} whispers to you: {' '.join(message.split()[2:])}", value)
                 recipient_found = True
@@ -71,6 +72,9 @@ def command_handler(client, command, message):
                 message_sender("User is currently offline", client)
             else:
                 message_sender("Unrecognized user", client)
+
+    elif command == "clear":
+        pass
 
         
 
