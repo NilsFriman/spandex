@@ -27,7 +27,7 @@ class chat_app(customtkinter.CTk):
                                                 text_color="green"
                                                 )
         
-        self.chat_textbox.pack()
+        self.chat_textbox.grid(row=1, column=0)
         self.chat_textbox.configure(state="disabled")
 
         self.chat_entry = customtkinter.CTkEntry(self,
@@ -36,9 +36,22 @@ class chat_app(customtkinter.CTk):
                                                  corner_radius=10,
                                                  bg_color="#1c1c1c",
                                                  fg_color="#1c1c1c",
-                                                 text_color="white",)
-        self.chat_entry.grid(row=1, column=0)
+                                                 text_color="green",)
+        self.chat_entry.grid(row=2, column=0)
         self.chat_entry.bind("<Return>", self.message_sender)
+
+
+        self.information = customtkinter.CTkFrame(self,
+                                                  width=400,
+                                                  height=150)
+        self.information.grid(row=0, column=0)
+
+        self.available_commands = customtkinter.CTkTextbox(self,
+                                                           width=70,
+                                                           height=50,
+                                                           corner_radius=3,
+                                                           text_color="green")
+        self.available_commands.grid()
 
 
     def message_sender(self, event):
