@@ -61,6 +61,7 @@ def command_handler(client_username, client_info, command, message):
                 clients[client_username]["name"] = nickname
 
                 message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
+                # Lägga till så att alla i chatten kan se att en user har bytt namn?
 
         except Exception:
             message_sender("You did not enter a nickname!", client_info["connection"])
