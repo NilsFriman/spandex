@@ -103,63 +103,8 @@ class ChatLoginGUI(customtkinter.CTk):
                                             )
         self.create.grid(row=5, column=0, pady=(10, 0))
 
-    def update_gui(self, create_text, login_label_text, apply_info_text):
-        self.create.configure(text=create_text)
-        self.login_label.configure(text=login_label_text)
-        self.apply_info.configure(text=apply_info_text)
 
 
-    def login_or_create(self):
-        self.error_message.configure(text="")
-        username = self.username_entry.get()
-        password = self.password_entry.get()
-
-        if not username and not password:
-            self.error_message.configure(text="Please enter a username and password!")
-        elif not username:
-            self.error_message.configure(text="Please enter a username!")
-        elif not password:
-            self.error_message.configure(text="Please enter a password!")
-        elif len(password) < 4:
-            self.error_message.configure(text="Make sure the password is longer than 3 characters!")
-        else:
-            self.username_entry.delete(0, "end")
-            self.password_entry.delete(0, "end")
-            action = "login" if self.apply_info._text == "Login" else "create"
-            socket.send(f"{username} {password} {action}".encode("utf-8"))
-            response = socket.recv(1024).decode("utf-8")
-
-            if action == "login":
-                if response == "Denied":
-                    self.error_message.configure(text="Wrong username or password!")
-                else:
-                    self.enter_chat()
-            elif response == "username not available":
-                self.error_message.configure(text="Username already taken")
-            else:
-                self.error_message.configure(
-                    text="Account created! You can now login!",
-                    text_color="lightgreen"
-                )
-
-            self.update_gui("Don't have an account? Click here!", "Login", "Login")
-
-
-    def create_account(self):
-        
-        self.error_message.configure(text="")
-        if self.create._text == "Don't have an account? Click here!":
-                    self.update_gui(
-            "Login to an existing account", "Create your account!", "Create")
-                    
-        else:
-            self.update_gui("Don't have an account? Click here!", "Login", "Login")
-
-    def enter_chat(self):
-        self.login_frame.pack_forget()
-        self.chat_gui()
-        receive_thread = threading.Thread(target=self.message_receiver)
-        receive_thread.start()
 
     def chat_gui(self):
         self.information_box = customtkinter.CTkFrame(
@@ -224,6 +169,65 @@ class ChatLoginGUI(customtkinter.CTk):
         self.chat_entry.grid(row=2, column=0)
         self.bind("<Return>", self.message_sender)
 
+    def update_gui(self, create_text, login_label_text, apply_info_text):
+        self.create.configure(text=create_text)
+        self.login_label.configure(text=login_label_text)
+        self.apply_info.configure(text=apply_info_text)
+
+
+    def login_or_create(self):
+        self.error_message.configure(text="")
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+
+        if not username and not password:
+            self.error_message.configure(text="Please enter a username and password!")
+        elif not username:
+            self.error_message.configure(text="Please enter a username!")
+        elif not password:
+            self.error_message.configure(text="Please enter a password!")
+        elif len(password) < 4:
+            self.error_message.configure(text="Make sure the password is longer than 3 characters!")
+        else:
+            self.username_entry.delete(0, "end")
+            self.password_entry.delete(0, "end")
+            action = "login" if self.apply_info._text == "Login" else "create"
+            socket.send(f"{username} {password} {action}".encode("utf-8"))
+            response = socket.recv(1024).decode("utf-8")
+
+            if action == "login":
+                if response == "Denied":
+                    self.error_message.configure(text="Wrong username or password!")
+                else:
+                    self.enter_chat()
+            elif response == "username not available":
+                self.error_message.configure(text="Username already taken")
+            else:
+                self.error_message.configure(
+                    text="Account created! You can now login!",
+                    text_color="lightgreen"
+                )
+
+            self.update_gui("Don't have an account? Click here!", "Login", "Login")
+
+
+    def create_account(self):
+        
+        self.error_message.configure(text="")
+        if self.create._text == "Don't have an account? Click here!":
+                    self.update_gui(
+            "Login to an existing account", "Create your account!", "Create")
+                    
+        else:
+            self.update_gui("Don't have an account? Click here!", "Login", "Login")
+
+    def enter_chat(self):
+        self.login_frame.pack_forget()
+        self.chat_gui()
+        receive_thread = threading.Thread(target=self.message_receiver)
+        receive_thread.start()
+
+
     def message_receiver(self):
         while True:
             if msg := socket.recv(1024):
@@ -232,10 +236,36 @@ class ChatLoginGUI(customtkinter.CTk):
                 self.chat_box.configure(state="disabled")
 
     def message_sender(self, event):
-        message = self.chat_entry.get()
-        socket.send(message.encode("utf-8"))
-        self.chat_entry.delete(0, "end")
+        if message := self.chat_entry.get():
+            if message.split()[0] == "/clear":
+                self.chat_box.configure(state="normal")
+                self.clear_chat(message)
+                self.chat_box.configure(state="disabled")
 
+            else:
+                socket.send(message.encode("utf-8"))
+
+
+            self.chat_entry.delete(0, "end")
+
+    def clear_chat(self, message):
+        message_parts = message.split()
+
+        if len(message_parts) > 2:
+            error_msg = "You entered too many commands!\n"
+
+        elif len(message_parts) < 2 :
+            error_msg = "You didnt specify the amount of lines to clear!\n"
+
+        else:
+            lines_to_clear = int(message_parts[1])
+            lines_in_chat = self.chat_box.get("1.0", "end-1c").count("\n")
+            start_line = lines_in_chat + 1 - lines_to_clear
+
+            self.chat_box.delete(f"{start_line}.0", "end-1c")
+            return
+
+        self.chat_box.insert("1.0", error_msg)
 
 app = ChatLoginGUI()
 app.mainloop()
