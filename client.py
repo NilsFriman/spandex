@@ -248,6 +248,7 @@ class ChatLoginGUI(customtkinter.CTk):
 
             self.chat_entry.delete(0, "end")
 
+    # Clears chat messages
     def clear_chat(self, message):
         message_parts = message.split()
 
