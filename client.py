@@ -210,16 +210,16 @@ class ChatLoginGUI(customtkinter.CTk):
 
             self.update_gui("Don't have an account? Click here!", "Login", "Login")
 
-
+    
     def create_account(self):
         
         self.error_message.configure(text="")
         if self.create._text == "Don't have an account? Click here!":
-                    self.update_gui(
-            "Login to an existing account", "Create your account!", "Create")
+                    self.update_gui("Login to an existing account", "Create your account!", "Create")
                     
         else:
             self.update_gui("Don't have an account? Click here!", "Login", "Login")
+
 
     def enter_chat(self):
         self.login_frame.pack_forget()
@@ -234,6 +234,7 @@ class ChatLoginGUI(customtkinter.CTk):
                 self.chat_box.configure(state="normal")
                 self.chat_box.insert("1.0", msg.decode("utf-8") + "\n")
                 self.chat_box.configure(state="disabled")
+
 
     def message_sender(self, event):
         if message := self.chat_entry.get():
