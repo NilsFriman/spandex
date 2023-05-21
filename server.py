@@ -1,7 +1,6 @@
 import socket
 import threading
-import json 
-
+import json
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_host = socket.gethostbyname(socket.gethostname())
@@ -20,7 +19,6 @@ clients = {}
 
 # Every client that has ever connected to the server
 users = {}
-
 
 # Names of all users
 names = []
@@ -47,10 +45,9 @@ def message_sender(message, specified_client_connection=None):
 def command_handler(client_username, client_info, command, message):
     if command == "clear":
         return
-    
+
     if command == "nick":
         try:
-            # Lägga till att användarnamnet inte kan vara längre än typ 8 characters?
             nickname = message[len("/nick") + 1:]
 
             if nickname in names:
@@ -73,7 +70,8 @@ def command_handler(client_username, client_info, command, message):
         for value in clients.values():
             if recipient == value["name"]:
                 print(f"{client_info['name']} whispers to you: {' '.join(message.split()[2:])}")
-                message_sender(f"{client_info['name']} whispers to you: {' '.join(message.split()[2:])}", value["connection"])
+                message_sender(f"{client_info['name']} whispers to you: {' '.join(message.split()[2:])}",
+                               value["connection"])
                 recipient_found = True
                 break
 
@@ -90,9 +88,8 @@ def client_handler(client_username, client_info):
         try:
             message = client_info["connection"].recv(1024).decode()
 
-
             if message[0] == "/":  # Client sends a command
-                command_handler(client_username, client_info, commands[message.split()[0]], message) # (Username, client_info, command, message)
+                command_handler(client_username, client_info, commands[message.split()[0]], message)  # (Username, client_info, command, message)
             else:  # Client sends a normal message
                 message_sender(f"{client_info['name']}: {message}")
 
@@ -102,9 +99,9 @@ def client_handler(client_username, client_info):
             client_info["connection"].close()
             message_sender(f"{disconnected_user} left the room")
             disconnected = True
-
-        # except KeyError:  # Client used a command that doesn't exist
-        #     message_sender("Invalid command!", client_info["connection"])
+            
+        except KeyError:
+            message_sender("Invalid command!", client_info["connection"])
 
 
 def login(client_address, client_connection):
@@ -113,31 +110,31 @@ def login(client_address, client_connection):
     while not logged_in:
         login_info = client_connection.recv(1024).decode("utf-8")
 
-        username = login_info.split()[0]
-        password = login_info.split()[1]
+        username, password, action = login_info.split()[:3]
 
-        if login_info.split()[2] == "login":
+        if action == "login":
+            if username in users and users[username]["password"] == password:
+                if "connection" in users[username]:
+                    message_sender("Denied", client_connection)
+                    break
 
-            if username in users.keys() and users[username]["password"] == password:
-                # Lägga till att den kollar om någon annan redan är inloggad på kontot på en annan dator? 
                 users[username]["connection"] = client_connection
                 clients[username] = users[username]
 
                 message_sender("Granted", client_connection)
-                message_sender(f"{users[username]['name']} has entered the chat!")    
+                message_sender(f"{users[username]['name']} has entered the chat!")
 
-                thread = threading.Thread(target=client_handler, args=(username,
-                                                                        users[username]))
+                thread = threading.Thread(target=client_handler, args=(username, users[username]))
                 thread.start()
                 logged_in = True
             else:
                 message_sender("Denied", client_connection)
 
-        elif username in users.keys():
+        elif username in users:
             message_sender("Username not available", client_connection)
-
         else:
-            users[username] = {"password": password, "name": f"Guest{guest_number}", "connection": client_connection, "adress": client_address}
+            users[username] = {"password": password, "name": f"Guest{guest_number}",
+                               "connection": client_connection, "adress": client_address}
             clients[username] = users[username]
 
             message_sender("Account created", client_connection)
@@ -151,24 +148,19 @@ def connections():
         login(client_address, client_connection)
 
 
-        
-    
 # Stores all the saved data of every user in local variables
 # with open("users.json", "r+", encoding="utf-8") as f:
 #     try:
 #         users_info = json.load(f)
-
+#
 #         users = users_info
-
+#
 #         names = [user["name"] for user in users.values()]
-
-
+#
 #     except json.JSONDecodeError:
 #         json.dump({}, f)
 
 
 users["lituna"] = {'password': '1234', "name": "lituwu"}
 
-
-    
 connections()
