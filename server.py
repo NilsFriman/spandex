@@ -23,9 +23,6 @@ users = {}
 # Names of all users
 names = []
 
-# The current highest number guest
-guest_number = 0
-
 commands = {
     "/nick": "nick",
     "/admin": "admin",
@@ -111,13 +108,13 @@ def login(client_address, client_connection):
         login_info = client_connection.recv(1024).decode("utf-8")
 
         username, password, action = login_info.split()[:3]
+        print(username)
+        print(password)
+        print(action)
 
+        print(users)
         if action == "login":
-            if username in users and users[username]["password"] == password:
-                if "connection" in users[username]:
-                    message_sender("Denied", client_connection)
-                    break
-
+            if username in users.keys() and users[username]["password"] == password:    
                 users[username]["connection"] = client_connection
                 clients[username] = users[username]
 
@@ -133,15 +130,16 @@ def login(client_address, client_connection):
         elif username in users:
             message_sender("Username not available", client_connection)
         else:
-            users[username] = {"password": password, "name": f"Guest{guest_number}",
+            users[username] = {"password": password, "name": f"Guest{len(users)}",
                                "connection": client_connection, "adress": client_address}
+            
+            names.append(users[username]["name"])
             clients[username] = users[username]
 
             message_sender("Account created", client_connection)
 
 
 def connections():
-    global guest_number
 
     while True:
         client_connection, client_address = server_socket.accept()

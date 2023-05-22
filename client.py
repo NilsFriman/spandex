@@ -3,7 +3,7 @@ import threading
 import customtkinter
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-socket.connect(("192.168.0.83", 1234))
+socket.connect(("10.158.18.151", 1234))
 
 # Note: Client will receive ConnectionResetError when server shuts down
 
@@ -43,7 +43,8 @@ class ChatLoginGUI(customtkinter.CTk):
                                                 height=350,
                                                 corner_radius=10,
                                                 border_width=1,
-                                                border_color="Red"
+                                                border_color="#830303",
+                                                fg_color="#272626"
                                                 )
         self.login_frame.pack(expand=True)
         self.login_frame.grid_propagate(False)
@@ -52,7 +53,7 @@ class ChatLoginGUI(customtkinter.CTk):
                                                 self.login_frame,
                                                 text="Login",
                                                 font=("Arial", 20),
-                                                text_color="Yellow"
+                                                text_color="Red"
                                                 )
         self.login_label.grid(row=0, column=0, pady=(25, 0))
 
@@ -232,7 +233,7 @@ class ChatLoginGUI(customtkinter.CTk):
         while True:
             if msg := socket.recv(1024):
                 self.chat_box.configure(state="normal")
-                self.chat_box.insert("1.0", msg.decode("utf-8") + "\n")
+                self.chat_box.insert("0.0", msg.decode("utf-8") + "\n")
                 self.chat_box.configure(state="disabled")
 
 
@@ -261,10 +262,9 @@ class ChatLoginGUI(customtkinter.CTk):
 
         else:
             lines_to_clear = int(message_parts[1])
-            lines_in_chat = self.chat_box.get("1.0", "end-1c").count("\n")
-            start_line = lines_in_chat + 1 - lines_to_clear
-
-            self.chat_box.delete(f"{start_line}.0", "end-1c")
+            print(lines_to_clear)
+            print(f"{lines_to_clear}.0")
+            self.chat_box.delete("0.0", f"{lines_to_clear + 1}.0")
             return
 
         self.chat_box.insert("1.0", error_msg)
