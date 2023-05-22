@@ -11,7 +11,8 @@ available_commands = {
     "/nick": "/nick {desired nickname}",
     "/admin": "/admin",
     "/clear": "/clear {amount of lines}",
-    "/whisper": "/whisper {username} {message}"
+    "/whisper": "/whisper {username} {message}",
+    "delete": "/delete (deletes your last message)"
 }
 
 
@@ -177,6 +178,7 @@ class ChatLoginGUI(customtkinter.CTk):
 
 
     def login_or_create(self):
+
         self.error_message.configure(text="")
         username = self.username_entry.get()
         password = self.password_entry.get()
@@ -244,11 +246,27 @@ class ChatLoginGUI(customtkinter.CTk):
                 self.clear_chat(message)
                 self.chat_box.configure(state="disabled")
 
+            if message.split()[0] == "/delete":
+                self.chat_box.configure(state="normal")
+                self.delete_message()
+                self.chat_box.configure(state="disabled")
+
             else:
                 socket.send(message.encode("utf-8"))
 
 
             self.chat_entry.delete(0, "end")
+
+
+    def delete_message(self):
+        chat_history = self.chat_box.get("0.0", "end").split("\n")
+        print(chat_history)
+        for idx, message in enumerate(chat_history):
+            if message and message.split()[0] == f"{#här ska användarnamnet av clienten vara}:":
+                chat_history.pop(idx)
+                break
+        print(chat_history)
+
 
     # Clears chat messages
     def clear_chat(self, message):

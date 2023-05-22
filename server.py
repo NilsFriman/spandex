@@ -26,8 +26,8 @@ names = []
 commands = {
     "/nick": "nick",
     "/admin": "admin",
-    "/clear": "clear",
-    "/whisper": "whisper"
+    "/whisper": "whisper",
+    "/delete": "delete"
 }
 
 
@@ -40,9 +40,12 @@ def message_sender(message, specified_client_connection=None):
 
 
 def command_handler(client_username, client_info, command, message):
-    if command == "clear":
-        return
 
+    if command == "delete":
+        
+        pass
+    
+    # If the /nick command is called
     if command == "nick":
         try:
             nickname = message[len("/nick") + 1:]
@@ -60,6 +63,7 @@ def command_handler(client_username, client_info, command, message):
         except Exception:
             message_sender("You did not enter a nickname!", client_info["connection"])
 
+    # If the /whisper command is called
     elif command == "whisper":
         recipient = message.split()[1]
         recipient_found = False
@@ -103,40 +107,40 @@ def client_handler(client_username, client_info):
 
 def login(client_address, client_connection):
     logged_in = False
-
+    
     while not logged_in:
-        login_info = client_connection.recv(1024).decode("utf-8")
+        try:
+            login_info = client_connection.recv(1024).decode("utf-8")
 
-        username, password, action = login_info.split()[:3]
-        print(username)
-        print(password)
-        print(action)
+            username, password, action = login_info.split()[:3]
 
-        print(users)
-        if action == "login":
-            if username in users.keys() and users[username]["password"] == password:    
-                users[username]["connection"] = client_connection
+            if action == "login":
+                if username in users.keys() and users[username]["password"] == password:    
+                    users[username]["connection"] = client_connection
+                    clients[username] = users[username]
+
+                    message_sender("Granted", client_connection)
+                    message_sender(f"{users[username]['name']} has entered the chat!")
+
+                    thread = threading.Thread(target=client_handler, args=(username, users[username]))
+                    thread.start()
+                    logged_in = True
+                else:
+                    message_sender("Denied", client_connection)
+
+            elif username in users:
+                message_sender("Username not available", client_connection)
+            else:
+                users[username] = {"password": password, "name": f"Guest{len(users)}",
+                                "connection": client_connection, "adress": client_address}
+                
+                names.append(users[username]["name"])
                 clients[username] = users[username]
 
-                message_sender("Granted", client_connection)
-                message_sender(f"{users[username]['name']} has entered the chat!")
+                message_sender("Account created", client_connection)
 
-                thread = threading.Thread(target=client_handler, args=(username, users[username]))
-                thread.start()
-                logged_in = True
-            else:
-                message_sender("Denied", client_connection)
-
-        elif username in users:
-            message_sender("Username not available", client_connection)
-        else:
-            users[username] = {"password": password, "name": f"Guest{len(users)}",
-                               "connection": client_connection, "adress": client_address}
-            
-            names.append(users[username]["name"])
-            clients[username] = users[username]
-
-            message_sender("Account created", client_connection)
+        except ValueError:
+            pass
 
 
 def connections():
