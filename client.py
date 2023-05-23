@@ -1,9 +1,10 @@
 import socket
 import threading
 import customtkinter
+import sys
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-socket.connect(("10.158.18.108", 1234))
+socket.connect(("192.168.0.83", 1234))
 
 # Note: Client will receive ConnectionResetError when server shuts down
 
@@ -21,6 +22,9 @@ class ChatLoginGUI(customtkinter.CTk):
         super().__init__()
         self._set_appearance_mode("dark")
         self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.close_window)
+
+        self.closed = False
 
         self.main_frame = customtkinter.CTkFrame(
             self,
@@ -163,7 +167,12 @@ class ChatLoginGUI(customtkinter.CTk):
         self.chat_entry.grid(row=2, column=0)
         self.bind("<Return>", self.message_sender)
 
-        self.protocol("WM_DELETE_WINDOW", quit())
+    def close_window(self):
+        self.closed = True
+
+        socket.close()
+        sys.exit()
+
 
     def update_gui(self, create_text, login_label_text, apply_info_text):
         self.create.configure(text=create_text)
@@ -218,27 +227,31 @@ class ChatLoginGUI(customtkinter.CTk):
     def enter_chat(self):
         self.login_frame.pack_forget()
         self.chat_gui()
-        receive_thread = threading.Thread(target=self.message_receiver)
-        receive_thread.start()
+
+
+        self.receive_thread = threading.Thread(target=self.message_receiver)
+        self.receive_thread.start()
 
     def message_receiver(self):
-        while True:
-            if msg := socket.recv(1024).decode("utf-8"):
-                self.chat_box.configure(state="normal")
-                if msg.split()[0] == "/delete":
-                    username_message_to_delete = msg.split()[1]
+        while not self.closed:    
+            try:
+                if msg := socket.recv(1024).decode("utf-8"):
+                    self.chat_box.configure(state="normal")
+                    if msg.split()[0] == "/delete":
+                        username_message_to_delete = msg.split()[1]
+                        chat_history = self.chat_box.get("0.0", "end").split("\n")
 
-                    chat_history = self.chat_box.get("0.0", "end").split("\n")
-
-                    # Deletes last message from user 
-                    for idx, message in enumerate(chat_history):
-                        if message and message.split()[0] == f"{username_message_to_delete}:":
-                            chat_history.pop(idx)
-                            self.chat_box.delete("0.0", "end")
-                            break
-                    self.chat_box.insert("0.0", "\n".join(chat_history))
-                else:
-                    self.chat_box.insert("0.0", msg + "\n")
+                        # Deletes last message from user 
+                        for idx, message in enumerate(chat_history):
+                            if message and message.split()[0] == f"{username_message_to_delete}:":
+                                chat_history.pop(idx)
+                                self.chat_box.delete("0.0", "end")
+                                break
+                        self.chat_box.insert("0.0", "\n".join(chat_history))
+                    else:
+                        self.chat_box.insert("0.0", msg + "\n")
+            except ConnectionAbortedError:
+                break
 
             self.chat_box.configure(state="disabled")
 
