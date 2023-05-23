@@ -70,18 +70,18 @@ def command_handler(client_username, client_info, command, message):
                 if nickname in names:  # Nickname is occupied
                     message_sender(f"\"{nickname}\" is already taken", client_info["connection"])
                 else:  # Nickname isn't occupied
+                    names.remove(clients[client_username]["name"])
                     names.append(nickname)
                     users[client_username]["name"] = nickname
                     clients[client_username]["name"] = nickname
-                    save_users(users)
+                    save_users(users)  # Updates json
                     message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
                     # Lägga till så att alla i chatten kan se att en user har bytt namn?
-
-        except IndexError:
+        except IndexError:  # message.split()[1] is out of range, and no nickname was entered
             message_sender("You did not enter a nickname!", client_info["connection"])
 
     # If the /whisper command is called
-    elif command == "whisper":
+    elif command == "whisper":  # The /whisper command is called
         recipient = message.split()[1]
         recipient_found = False
 
