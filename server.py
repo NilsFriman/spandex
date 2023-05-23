@@ -31,6 +31,15 @@ commands = {
 }
 
 
+def get_users(userfile="users.json"):
+    with open(userfile, "r", encoding="UTF-8") as file:
+        data = json.load(file)
+        print(data)
+
+
+get_users()
+
+
 def message_sender(message, specified_client_connection=None):
     if specified_client_connection:  # Whisper
         specified_client_connection.send(message.encode())
@@ -48,7 +57,7 @@ def command_handler(client_username, client_info, command, message):
     # If the /nick command is called
     if command == "nick":
         try:
-            nickname = message[len("/nick") + 1:]
+            nickname = message.split()[1]
 
             if nickname in names:
                 message_sender(f"\"{nickname}\" is already taken", client_info["connection"])
@@ -60,7 +69,7 @@ def command_handler(client_username, client_info, command, message):
                 message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
                 # Lägga till så att alla i chatten kan se att en user har bytt namn?
 
-        except Exception:
+        except ValueError:
             message_sender("You did not enter a nickname!", client_info["connection"])
 
     # If the /whisper command is called
