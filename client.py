@@ -171,6 +171,8 @@ class ChatLoginGUI(customtkinter.CTk):
         self.chat_entry.grid(row=2, column=0)
         self.bind("<Return>", self.message_sender)
 
+        self.protocol("WM_DELETE_WINDOW", quit())
+
     def update_gui(self, create_text, login_label_text, apply_info_text):
         self.create.configure(text=create_text)
         self.login_label.configure(text=login_label_text)

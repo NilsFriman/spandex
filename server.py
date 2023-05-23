@@ -109,7 +109,7 @@ def client_handler(client_username, client_info):
             message = client_info["connection"].recv(1024).decode()
 
             if message[0] == "/":  # Client sends a command
-                command_handler(client_username, client_info, commands[message.split()[0]], message)  # (Username, client_info, command, message)
+                command_handler(client_username, client_info, commands[message.split()[0]], message)
             else:  # Client sends a normal message
                 message_sender(f"{client_info['name']}: {message}")
 
@@ -133,7 +133,7 @@ def login(client_address, client_connection):
 
             username, password, action = login_info.split()[:3]
 
-            if action == "login":
+            if action == "login":  # Logging in to existing account
                 if username in users.keys() and users[username]["password"] == password:    
                     users[username]["connection"] = client_connection
                     clients[username] = users[username]
@@ -147,16 +147,21 @@ def login(client_address, client_connection):
                 else:
                     message_sender("Denied", client_connection)
 
-            elif username in users:
-                message_sender("Username not available", client_connection)
-            else:
-                users[username] = {"password": password, "name": f"Guest{len(users)}",
-                                "connection": client_connection, "adress": client_address}
-                
-                names.append(users[username]["name"])
-                clients[username] = users[username]
-
-                message_sender("Account created", client_connection)
+            else:  # Creating new account
+                if username in users:  # Username already occupied
+                    message_sender("Username not available", client_connection)
+                else:  # Username not occupied
+                    user = {
+                        "password": password,
+                        "name": f"Guest{len(users)}",
+                        "connection": client_connection,
+                        "address": client_address
+                    }
+                    users[username] = user
+                    save_users(users)
+                    names.append(users[username]["name"])
+                    clients[username] = users[username]
+                    message_sender("Account created", client_connection)
 
         except ValueError:
             pass
@@ -169,19 +174,8 @@ def connections():
         login(client_address, client_connection)
 
 
-# Stores all the saved data of every user in local variables
-# with open("users.json", "r+", encoding="utf-8") as f:
-#     try:
-#         users_info = json.load(f)
-#
-#         users = users_info
-#
-#         names = [user["name"] for user in users.values()]
-#
-#     except json.JSONDecodeError:
-#         json.dump({}, f)
-
-
 users["lituna"] = {'password': '1234', "name": "lituwu"}
+users["n"] = {"password": "1", "name": "NISSEPISS"}
 
+handle_saved_users(get_users())
 connections()
