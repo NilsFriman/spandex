@@ -31,13 +31,13 @@ commands = {
 }
 
 
-def get_users(userfile="users.json"):
-    with open(userfile, "r", encoding="UTF-8") as file:
-        data = json.load(file)
-        print(data)
+# def get_users(userfile="users.json"):
+#     with open(userfile, "r", encoding="UTF-8") as file:
+#         data = json.load(file)
+#         print(data)
 
 
-get_users()
+# get_users()
 
 
 def message_sender(message, specified_client_connection=None):
@@ -51,8 +51,7 @@ def message_sender(message, specified_client_connection=None):
 def command_handler(client_username, client_info, command, message):
 
     if command == "delete":
-        
-        pass
+        message_sender(f"/delete {client_info['name']}")
     
     # If the /nick command is called
     if command == "nick":
