@@ -2,12 +2,13 @@ import socket
 import threading
 import json
 
+# Setting up server
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_host = socket.gethostbyname(socket.gethostname())
 server_port = 1234
 
 try:
-    server_socket.bind(("", server_port))
+    server_socket.bind(("", server_port))  # Binds server to port
 except socket.error as error:
     print(error)
 
@@ -23,6 +24,7 @@ users = {}
 # Names of all users
 names = []
 
+# Possible commands
 commands = {
     "/nick": "nick",
     "/admin": "admin",
@@ -31,26 +33,23 @@ commands = {
 }
 
 
-def save_users(data, userfile="users.json"):
+def save_users(data, userfile="users.json"):  # Save users to file
     with open(userfile, "w") as file:
         json.dump(data, file, indent=4)
 
 
-def get_users(userfile="users.json"):
+def get_users(userfile="users.json"):  # Get users from file
     with open(userfile, "r", encoding="UTF-8") as file:
         return json.load(file)
 
 
-def handle_saved_users(data):
+def handle_saved_users(data):  # Make retrieved data useful
     global users, names
     users = data
     names = [user["name"] for user in users.values()]
 
 
-get_users()
-
-
-def message_sender(message, specified_client_connection=None):
+def message_sender(message, specified_client_connection=None):  # Send a message to a client
     if specified_client_connection:  # Whisper
         specified_client_connection.send(message.encode())
     else:  # Public message
@@ -59,27 +58,26 @@ def message_sender(message, specified_client_connection=None):
 
 
 def command_handler(client_username, client_info, command, message):
-
-    if command == "delete":
-        
+    if command == "delete":  # WIP
         pass
-    
-    # If the /nick command is called
-    if command == "nick":
+
+    if command == "nick":  # The /nick command is called
         try:
-            nickname = message.split()[1]
+            if len(message.split()) > 2:  # Client entered a nickname consisting of more than 1 word
+                message_sender("Your nickname may only consist of one word!", client_info["connection"])
+            else:  # Nickname is one word
+                nickname = message.split()[1]
+                if nickname in names:  # Nickname is occupied
+                    message_sender(f"\"{nickname}\" is already taken", client_info["connection"])
+                else:  # Nickname isn't occupied
+                    names.append(nickname)
+                    users[client_username]["name"] = nickname
+                    clients[client_username]["name"] = nickname
+                    save_users(users)
+                    message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
+                    # Lägga till så att alla i chatten kan se att en user har bytt namn?
 
-            if nickname in names:
-                message_sender(f"\"{nickname}\" is already taken", client_info["connection"])
-            else:
-                names.append(nickname)
-                users[client_username]["name"] = nickname
-                clients[client_username]["name"] = nickname
-
-                message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
-                # Lägga till så att alla i chatten kan se att en user har bytt namn?
-
-        except ValueError:
+        except IndexError:
             message_sender("You did not enter a nickname!", client_info["connection"])
 
     # If the /whisper command is called
@@ -153,9 +151,7 @@ def login(client_address, client_connection):
                 else:  # Username not occupied
                     user = {
                         "password": password,
-                        "name": f"Guest{len(users)}",
-                        "connection": client_connection,
-                        "address": client_address
+                        "name": f"Guest{len(users)}"
                     }
                     users[username] = user
                     save_users(users)
@@ -173,9 +169,6 @@ def connections():
         client_connection, client_address = server_socket.accept()
         login(client_address, client_connection)
 
-
-users["lituna"] = {'password': '1234', "name": "lituwu"}
-users["n"] = {"password": "1", "name": "NISSEPISS"}
 
 handle_saved_users(get_users())
 connections()

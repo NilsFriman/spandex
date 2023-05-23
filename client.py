@@ -3,7 +3,7 @@ import threading
 import customtkinter
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-socket.connect(("10.158.18.151", 1234))
+socket.connect(("10.158.18.108", 1234))
 
 # Note: Client will receive ConnectionResetError when server shuts down
 
