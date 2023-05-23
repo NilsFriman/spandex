@@ -228,28 +228,32 @@ class ChatLoginGUI(customtkinter.CTk):
         self.login_frame.pack_forget()
         self.chat_gui()
 
-
         self.receive_thread = threading.Thread(target=self.message_receiver)
         self.receive_thread.start()
 
     def message_receiver(self):
         while not self.closed:    
             try:
-                if msg := socket.recv(1024).decode("utf-8"):
+                msg = socket.recv(1024).decode("utf-8")
+
+                if msg:
                     self.chat_box.configure(state="normal")
+
                     if msg.split()[0] == "/delete":
                         username_message_to_delete = msg.split()[1]
                         chat_history = self.chat_box.get("0.0", "end").split("\n")
 
-                        # Deletes last message from user 
+                        # Deletes latest message from user 
                         for idx, message in enumerate(chat_history):
                             if message and message.split()[0] == f"{username_message_to_delete}:":
                                 chat_history.pop(idx)
                                 self.chat_box.delete("0.0", "end")
                                 break
+
                         self.chat_box.insert("0.0", "\n".join(chat_history))
                     else:
                         self.chat_box.insert("0.0", msg + "\n")
+
             except ConnectionAbortedError:
                 break
 
