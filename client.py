@@ -233,10 +233,30 @@ class ChatLoginGUI(customtkinter.CTk):
 
     def message_receiver(self):
         while True:
-            if msg := socket.recv(1024):
+            if msg := socket.recv(1024).decode("utf-8"):
                 self.chat_box.configure(state="normal")
-                self.chat_box.insert("0.0", msg.decode("utf-8") + "\n")
-                self.chat_box.configure(state="disabled")
+                if msg.split()[0] == "/delete":
+                    username_message_to_delete = msg.split()[1]
+
+                    chat_history = self.chat_box.get("0.0", "end").split("\n")
+
+                    # Deletes last message from user 
+                    for idx, message in enumerate(chat_history):
+                        if message and message.split()[0] == f"{username_message_to_delete}:":
+                            chat_history.pop(idx)
+                            self.chat_box.delete("0.0", "end")
+                            break
+                    
+
+                    self.chat_box.insert("0.0", "\n".join(chat_history))
+
+                           
+                    
+
+                else:
+                    self.chat_box.insert("0.0", msg + "\n")
+
+            self.chat_box.configure(state="disabled")
 
 
     def message_sender(self, event):
@@ -246,26 +266,12 @@ class ChatLoginGUI(customtkinter.CTk):
                 self.clear_chat(message)
                 self.chat_box.configure(state="disabled")
 
-            if message.split()[0] == "/delete":
-                self.chat_box.configure(state="normal")
-                self.delete_message()
-                self.chat_box.configure(state="disabled")
-
             else:
                 socket.send(message.encode("utf-8"))
 
 
             self.chat_entry.delete(0, "end")
 
-
-    def delete_message(self):
-        chat_history = self.chat_box.get("0.0", "end").split("\n")
-        print(chat_history)
-        for idx, message in enumerate(chat_history):
-            if message and message.split()[0] == f"{#här ska användarnamnet av clienten vara}:":
-                chat_history.pop(idx)
-                break
-        print(chat_history)
 
 
     # Clears chat messages

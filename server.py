@@ -31,20 +31,10 @@ commands = {
 }
 
 
-def save_users(data, userfile="users.json"):
-    with open(userfile, "w") as file:
-        json.dump(data, file, indent=4)
-
-
 def get_users(userfile="users.json"):
     with open(userfile, "r", encoding="UTF-8") as file:
-        return json.load(file)
-
-
-def handle_saved_users(data):
-    global users, names
-    users = data
-    names = [user["name"] for user in users.values()]
+        data = json.load(file)
+        print(data)
 
 
 get_users()
