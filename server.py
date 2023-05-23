@@ -85,52 +85,47 @@ def command_handler(client_username, client_info, command, message):
         recipient = message.split()[1]
         recipient_found = False
 
-        for value in clients.values():
-            if recipient == value["name"]:
-                print(f"{client_info['name']} whispers to you: {' '.join(message.split()[2:])}")
+        for value in clients.values():  # Loops through all client names
+            if recipient == value["name"]:  # If the recipient is a match
                 message_sender(f"{client_info['name']} whispers to you: {' '.join(message.split()[2:])}",
                                value["connection"])
-                recipient_found = True
+                recipient_found = True  # Recipient found online
                 break
 
         if not recipient_found:
-            if recipient in (users[user]["name"] for user in users.keys()):
-                message_sender("User is currently offline", client_info["connection"])
-            else:
-                message_sender("Unrecognized user", client_info["connection"])
+            if recipient in (users[user]["name"] for user in users.keys()):  # Recipient offline
+                message_sender(f"{recipient} is currently offline", client_info["connection"])
+            else:  # Recipient doesn't exist
+                message_sender(f"No user with the name {recipient}", client_info["connection"])
 
 
-def client_handler(client_username, client_info):
+def client_handler(client_username, client_info):  # Loop to be threaded for every client
     disconnected = False
     while not disconnected:
         try:
-            message = client_info["connection"].recv(1024).decode()
-
+            message = client_info["connection"].recv(1024).decode()  # Gets message
             if message[0] == "/":  # Client sends a command
                 command_handler(client_username, client_info, commands[message.split()[0]], message)
             else:  # Client sends a normal message
                 message_sender(f"{client_info['name']}: {message}")
 
         except ConnectionResetError:  # Client disconnected
-            disconnected_user = client_info['name']
+            disconnected_user = client_info['name']  # User must be saved so message can be sent after user termination
             clients.pop(client_username)
-            client_info["connection"].close()
-            message_sender(f"{disconnected_user} left the room")
-            disconnected = True
+            client_info["connection"].close()  # Disconnects client
+            message_sender(f"{disconnected_user} left the room")  # Sends message
+            disconnected = True  # Breaks loop
             
-        except KeyError:
+        except KeyError:  # Command not in commands dictionary
             message_sender("Invalid command!", client_info["connection"])
 
 
-def login(client_address, client_connection):
+def login(client_address, client_connection):  # Login function to access your profile
     logged_in = False
-    
     while not logged_in:
         try:
-            login_info = client_connection.recv(1024).decode("utf-8")
-
-            username, password, action = login_info.split()[:3]
-
+            login_info = client_connection.recv(1024).decode("utf-8")  # Gets login info from client program
+            username, password, action = login_info.split()[:3]  # Separates information
             if action == "login":  # Logging in to existing account
                 if username in users.keys() and users[username]["password"] == password:    
                     users[username]["connection"] = client_connection
@@ -144,7 +139,6 @@ def login(client_address, client_connection):
                     logged_in = True
                 else:
                     message_sender("Denied", client_connection)
-
             else:  # Creating new account
                 if username in users:  # Username already occupied
                     message_sender("Username not available", client_connection)
@@ -158,16 +152,14 @@ def login(client_address, client_connection):
                     names.append(users[username]["name"])
                     clients[username] = users[username]
                     message_sender("Account created", client_connection)
-
         except ValueError:
             pass
 
 
-def connections():
-
+def connections():  # Function to accept new connections
     while True:
         client_connection, client_address = server_socket.accept()
-        login(client_address, client_connection)
+        login(client_address, client_connection)  # Runs login for client
 
 
 handle_saved_users(get_users())
