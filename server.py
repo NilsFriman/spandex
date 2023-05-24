@@ -33,6 +33,7 @@ commands = {
 }
 
 
+
 def save_users(data, userfile="users.json"):  # Save users to file
     with open(userfile, "w") as file:
         json.dump(data, file, indent=4)
@@ -58,8 +59,9 @@ def message_sender(message, specified_client_connection=None):  # Send a message
 
 
 def command_handler(client_username, client_info, command, message):
-    if command == "delete":  # WIP
-        pass
+
+    if command == "delete":  
+        message_sender(f"/delete {client_info['name']}")
 
     if command == "nick":  # The /nick command is called
         try:
@@ -69,14 +71,21 @@ def command_handler(client_username, client_info, command, message):
                 nickname = message.split()[1]
                 if nickname in names:  # Nickname is occupied
                     message_sender(f"\"{nickname}\" is already taken", client_info["connection"])
+
                 else:  # Nickname isn't occupied
+                    old_name = clients[client_username]["name"]
+
+
                     names.remove(clients[client_username]["name"])
                     names.append(nickname)
                     users[client_username]["name"] = nickname
                     clients[client_username]["name"] = nickname
                     save_users(users)  # Updates json
                     message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
+                    
+                    message_sender(f"{old_name} has changed nickname to {nickname}")
                     # Lägga till så att alla i chatten kan se att en user har bytt namn?
+
         except IndexError:  # message.split()[1] is out of range, and no nickname was entered
             message_sender("You did not enter a nickname!", client_info["connection"])
 
@@ -114,13 +123,14 @@ def client_handler(client_username, client_info):  # Loop to be threaded for eve
             clients.pop(client_username)
             client_info["connection"].close()  # Disconnects client
             message_sender(f"{disconnected_user} left the room")  # Sends message
+            update_active_users()
             disconnected = True  # Breaks loop
             
         except KeyError:  # Command not in commands dictionary
             message_sender("Invalid command!", client_info["connection"])
 
 
-def login(client_address, client_connection):  # Login function to access your profile
+def login(client_connection):  # Login function to access your profile
     logged_in = False
     while not logged_in:
         try:
@@ -131,35 +141,54 @@ def login(client_address, client_connection):  # Login function to access your p
                     users[username]["connection"] = client_connection
                     clients[username] = users[username]
 
+
                     message_sender("Granted", client_connection)
                     message_sender(f"{users[username]['name']} has entered the chat!")
 
+
+                    
+
                     thread = threading.Thread(target=client_handler, args=(username, users[username]))
                     thread.start()
+
                     logged_in = True
+                    
+
+                    while True:
+                        in_chat = client_connection.recv(1024).decode("utf-8")
+
+                        if in_chat == "Entered the chat":
+                            break
+
+                    update_active_users()
+
                 else:
                     message_sender("Denied", client_connection)
-            else:  # Creating new account
-                if username in users:  # Username already occupied
-                    message_sender("Username not available", client_connection)
-                else:  # Username not occupied
-                    user = {
-                        "password": password,
-                        "name": f"Guest{len(users)}"
-                    }
-                    users[username] = user
-                    save_users(users)
-                    names.append(users[username]["name"])
-                    clients[username] = users[username]
-                    message_sender("Account created", client_connection)
+            elif username in users:  # Username already occupied
+                message_sender("Username not available", client_connection)
+            else:  # Username not occupied
+                user = {
+                    "password": password,
+                    "name": f"Guest{len(users)}"
+                }
+                
+                users[username] = user
+                save_users(users)
+                names.append(users[username]["name"])
+                clients[username] = users[username]
+                message_sender("Account created", client_connection)
         except ValueError:
             pass
+
+def update_active_users():
+    message_sender(f"/active {len(clients)}")
+
 
 
 def connections():  # Function to accept new connections
     while True:
-        client_connection, client_address = server_socket.accept()
-        login(client_address, client_connection)  # Runs login for client
+        client_connection, _ = server_socket.accept()
+        login(client_connection)  # Runs login for client
 
 
 handle_saved_users(get_users())

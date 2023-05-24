@@ -3,20 +3,19 @@ import threading
 import customtkinter
 import sys
 
+
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 socket.connect(("192.168.0.83", 1234))
 
-# Note: Client will receive ConnectionResetError when server shuts down
-
 available_commands = {
-    "/nick": "/nick {desired nickname}",
-    "/clear": "/clear {amount of lines}",
-    "/whisper": "/whisper {username} {message}",
-    "delete": "/delete (deletes your last message)"
+"/nick": "/nick {desired nickname}",
+"/clear": "/clear {amount of lines or \"all\"}",
+"/whisper": "/whisper {username} {message}",
+"delete": "/delete (deletes your last message)"
 }
 
-
 class ChatLoginGUI(customtkinter.CTk):
+
     def __init__(self):
         super().__init__()
         self._set_appearance_mode("dark")
@@ -234,19 +233,21 @@ class ChatLoginGUI(customtkinter.CTk):
             self.update_gui("Don't have an account? Click here!", "Login", "Login")
 
     def enter_chat(self):
-
+        
         self.login_frame.pack_forget()
         self.chat_gui()
 
         self.receive_thread = threading.Thread(target=self.message_receiver)
         self.receive_thread.start()
 
+        socket.send("Entered the chat".encode("utf-8"))
+
+
+
     def message_receiver(self):
         while not self.closed:    
             try:
                 msg = socket.recv(1024).decode("utf-8")
-
-                print(msg)
 
                 if msg:
                     self.chat_box.configure(state="normal")
@@ -260,13 +261,16 @@ class ChatLoginGUI(customtkinter.CTk):
                             if message and message.split()[0] == f"{username_message_to_delete}:":
                                 chat_history.pop(idx)
                                 self.chat_box.delete("0.0", "end")
+                                self.chat_box.insert("0.0", "\n".join(chat_history))
                                 break
+                        
 
-                        self.chat_box.insert("0.0", "\n".join(chat_history))
+                    elif msg.split()[0] == "/active":
+                        self.online_users.configure(state="normal")
+                        self.online_users.delete("0.0", "end")
+                        self.online_users.insert("0.0", f"Online users - {msg.split()[1]}")
 
-                    # elif msg.split()[0] == "/active":
-                    #     self.online_users.configure(state="normal")
-                    #     self.online_users.insert("0.0", f"Online users - {msg.split()[1]}")
+                        self.online_users.configure(state="disabled")
 
 
                     else:
@@ -276,7 +280,7 @@ class ChatLoginGUI(customtkinter.CTk):
                 break
 
             self.chat_box.configure(state="disabled")
-            # self.online_users.configure(state="disabled")
+
 
     def message_sender(self, event):
 
@@ -305,9 +309,13 @@ class ChatLoginGUI(customtkinter.CTk):
             error_msg = "You didnt specify the amount of lines to clear!\n"
 
         else:
-            lines_to_clear = int(message_parts[1])
+            if message_parts[1] == "all":
+                end_line = "end"
+            
+            else:
+                end_line = f"{int(message_parts[1]) + 1}.0"
 
-            self.chat_box.delete("0.0", f"{lines_to_clear + 1}.0")
+            self.chat_box.delete("0.0", end_line)
             return
 
         self.chat_box.insert("1.0", error_msg)
