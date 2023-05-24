@@ -10,7 +10,6 @@ socket.connect(("192.168.0.83", 1234))
 
 available_commands = {
     "/nick": "/nick {desired nickname}",
-    "/admin": "/admin",
     "/clear": "/clear {amount of lines}",
     "/whisper": "/whisper {username} {message}",
     "delete": "/delete (deletes your last message)"
@@ -181,19 +180,23 @@ class ChatLoginGUI(customtkinter.CTk):
         self.apply_info.configure(text=apply_info_text)
 
     def login_or_create(self):
-
         self.error_message.configure(text="")
+
         username = self.username_entry.get()
         password = self.password_entry.get()
 
         if not username and not password:
             self.error_message.configure(text="Please enter a username and password!")
+
         elif not username:
             self.error_message.configure(text="Please enter a username!")
+
         elif not password:
             self.error_message.configure(text="Please enter a password!")
+
         elif len(password) < 4:
             self.error_message.configure(text="Make sure the password is longer than 3 characters!")
+
         else:
             self.username_entry.delete(0, "end")
             self.password_entry.delete(0, "end")
@@ -203,12 +206,17 @@ class ChatLoginGUI(customtkinter.CTk):
 
             if action == "login":
                 if response == "Denied":
+
                     self.error_message.configure(text="Wrong username or password!")
+
                 else:
                     self.enter_chat()
+
             elif response == "username not available":
                 self.error_message.configure(text="Username already taken")
+
             else:
+
                 self.error_message.configure(
                     text="Account created! You can now login!",
                     text_color="lightgreen"
@@ -226,6 +234,7 @@ class ChatLoginGUI(customtkinter.CTk):
             self.update_gui("Don't have an account? Click here!", "Login", "Login")
 
     def enter_chat(self):
+
         self.login_frame.pack_forget()
         self.chat_gui()
 
@@ -255,9 +264,9 @@ class ChatLoginGUI(customtkinter.CTk):
 
                         self.chat_box.insert("0.0", "\n".join(chat_history))
 
-                    elif msg.split()[0] == "/active":
-                        self.online_users.configure(state="normal")
-                        self.online_users.insert("0.0", f"Online users - {msg.split()[1]}")
+                    # elif msg.split()[0] == "/active":
+                    #     self.online_users.configure(state="normal")
+                    #     self.online_users.insert("0.0", f"Online users - {msg.split()[1]}")
 
 
                     else:
@@ -267,17 +276,22 @@ class ChatLoginGUI(customtkinter.CTk):
                 break
 
             self.chat_box.configure(state="disabled")
-            self.online_users.configure(state="disabled")
+            # self.online_users.configure(state="disabled")
 
     def message_sender(self, event):
+
         if message := self.chat_entry.get():
+
             if message.split()[0] == "/clear":
+
                 self.chat_box.configure(state="normal")
                 self.clear_chat(message)
                 self.chat_box.configure(state="disabled")
 
             else:
+
                 socket.send(message.encode("utf-8"))
+
             self.chat_entry.delete(0, "end")
 
     # Clears chat messages
