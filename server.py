@@ -80,6 +80,7 @@ def command_handler(client_username, client_info, command, message):
                     names.append(nickname)
                     users[client_username]["name"] = nickname
                     clients[client_username]["name"] = nickname
+                    print(users)
                     save_users(users)  # Updates json
                     message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
                     
@@ -138,8 +139,9 @@ def login(client_connection):  # Login function to access your profile
             username, password, action = login_info.split()[:3]  # Separates information
             if action == "login":  # Logging in to existing account
                 if username in users.keys() and users[username]["password"] == password:    
-                    users[username]["connection"] = client_connection
-                    clients[username] = users[username]
+                    clients[username] = users[username].copy()
+
+                    clients[username]["connection"] = client_connection
 
 
                     message_sender("Granted", client_connection)
@@ -148,7 +150,7 @@ def login(client_connection):  # Login function to access your profile
 
                     
 
-                    thread = threading.Thread(target=client_handler, args=(username, users[username]))
+                    thread = threading.Thread(target=client_handler, args=(username, clients[username]))
                     thread.start()
 
                     logged_in = True
