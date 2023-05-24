@@ -27,80 +27,81 @@ class ChatLoginGUI(customtkinter.CTk):
         self.closed = False
 
         self.main_frame = customtkinter.CTkFrame(
-            self,
-            width=500,
-            height=584,
-            corner_radius=5,
-            fg_color="#1D1E1E"
+                                                self,
+                                                width=500,
+                                                height=584,
+                                                corner_radius=5,
+                                                fg_color="#1D1E1E"
         )
         self.main_frame.pack()
         self.main_frame.pack_propagate(False)
         self.main_frame.grid_propagate(False)
 
         self.login_frame = customtkinter.CTkFrame(
-            self.main_frame,
-            width=300,
-            height=350,
-            corner_radius=10,
-            border_width=1,
-            border_color="#830303",
-            fg_color="#272626"
+                                                    self.main_frame,
+                                                    width=300,
+                                                    height=350,
+                                                    corner_radius=10,
+                                                    border_width=1,
+                                                    border_color="#830303",
+                                                    fg_color="#272626"
         )
         self.login_frame.pack(expand=True)
         self.login_frame.grid_propagate(False)
 
         self.login_label = customtkinter.CTkLabel(
-            self.login_frame,
-            text="Login",
-            font=("Arial", 20),
-            text_color="Red"
+                                                self.login_frame,
+                                                text="Login",
+                                                font=("Arial", 20),
+                                                text_color="Red"
         )
         self.login_label.grid(row=0, column=0, pady=(25, 0))
 
         self.username_entry = customtkinter.CTkEntry(
-            self.login_frame,
-            width=200,
-            height=40,
-            corner_radius=8,
-            border_width=1,
-            placeholder_text="Username"
+                                                    self.login_frame,
+                                                    width=200,
+                                                    height=40,
+                                                    corner_radius=8,
+                                                    border_width=1,
+                                                    placeholder_text="Username"
         )
         self.username_entry.grid(row=1, column=0, pady=(35, 0), padx=50)
 
         self.password_entry = customtkinter.CTkEntry(
-            self.login_frame,
-            width=200,
-            height=40,
-            corner_radius=8,
-            border_width=1,
-            placeholder_text="Password"
+                                                    self.login_frame,
+                                                    width=200,
+                                                    height=40,
+                                                    corner_radius=8,
+                                                    border_width=1,
+                                                    placeholder_text="Password",
+                                                    show="*"
         )
         self.password_entry.grid(row=2, column=0, pady=(15, 0), padx=50)
 
         self.error_message = customtkinter.CTkLabel(
-            self.login_frame,
-            text="",
-            text_color="red"
+                                                    self.login_frame,
+                                                    text="",
+                                                    text_color="red"
         )
         self.error_message.grid(row=3, column=0, pady=(5, 0))
 
         self.apply_info = customtkinter.CTkButton(
-            self.login_frame,
-            width=100,
-            height=30,
-            corner_radius=8,
-            border_width=1,
-            text="Login",
-            command=self.login_or_create
+                                                self.login_frame,
+                                                width=100,
+                                                height=30,
+                                                corner_radius=8,
+                                                border_width=1,
+                                                text="Login",
+                                                command=self.login_or_create
         )
         self.apply_info.grid(row=4, column=0)
 
         self.create = customtkinter.CTkButton(
-            self.login_frame,
-            text="Don't have an account? Click here!",
-            fg_color="gray17",
-            bg_color="gray17",
-            command=self.create_account
+                                            self.login_frame,
+                                            text="Don't have an account? Click here!",
+                                            fg_color="gray17",
+                                            bg_color="gray17",
+                                            command=self.create_account
         )
         self.create.grid(row=5, column=0, pady=(10, 0))
 
@@ -236,6 +237,8 @@ class ChatLoginGUI(customtkinter.CTk):
             try:
                 msg = socket.recv(1024).decode("utf-8")
 
+                print(msg)
+
                 if msg:
                     self.chat_box.configure(state="normal")
 
@@ -251,6 +254,12 @@ class ChatLoginGUI(customtkinter.CTk):
                                 break
 
                         self.chat_box.insert("0.0", "\n".join(chat_history))
+
+                    elif msg.split()[0] == "/active":
+                        self.online_users.configure(state="normal")
+                        self.online_users.insert("0.0", f"Online users - {msg.split()[1]}")
+
+
                     else:
                         self.chat_box.insert("0.0", msg + "\n")
 
@@ -258,6 +267,7 @@ class ChatLoginGUI(customtkinter.CTk):
                 break
 
             self.chat_box.configure(state="disabled")
+            self.online_users.configure(state="disabled")
 
     def message_sender(self, event):
         if message := self.chat_entry.get():
@@ -282,8 +292,7 @@ class ChatLoginGUI(customtkinter.CTk):
 
         else:
             lines_to_clear = int(message_parts[1])
-            print(lines_to_clear)
-            print(f"{lines_to_clear}.0")
+
             self.chat_box.delete("0.0", f"{lines_to_clear + 1}.0")
             return
 
