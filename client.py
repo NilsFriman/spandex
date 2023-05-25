@@ -2,6 +2,7 @@ import socket
 import threading
 import customtkinter
 import sys
+import json
 
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -43,7 +44,7 @@ class ChatLoginGUI(customtkinter.CTk):
                                                     border_width=1,
                                                     border_color="#830303",
                                                     fg_color="#272626"
-        )
+                                                    )
         self.login_frame.pack(expand=True)
         self.login_frame.grid_propagate(False)
 
@@ -52,7 +53,7 @@ class ChatLoginGUI(customtkinter.CTk):
                                                 text="Login",
                                                 font=("Arial", 20),
                                                 text_color="Red"
-        )
+                                                )
         self.login_label.grid(row=0, column=0, pady=(25, 0))
 
         self.username_entry = customtkinter.CTkEntry(
@@ -62,7 +63,7 @@ class ChatLoginGUI(customtkinter.CTk):
                                                     corner_radius=8,
                                                     border_width=1,
                                                     placeholder_text="Username"
-        )
+                                                    )
         self.username_entry.grid(row=1, column=0, pady=(35, 0), padx=50)
 
         self.password_entry = customtkinter.CTkEntry(
@@ -73,14 +74,14 @@ class ChatLoginGUI(customtkinter.CTk):
                                                     border_width=1,
                                                     placeholder_text="Password",
                                                     show="*"
-        )
+                                                    )
         self.password_entry.grid(row=2, column=0, pady=(15, 0), padx=50)
 
         self.error_message = customtkinter.CTkLabel(
                                                     self.login_frame,
                                                     text="",
                                                     text_color="red"
-        )
+                                                    )
         self.error_message.grid(row=3, column=0, pady=(5, 0))
 
         self.apply_info = customtkinter.CTkButton(
@@ -91,7 +92,7 @@ class ChatLoginGUI(customtkinter.CTk):
                                                 border_width=1,
                                                 text="Login",
                                                 command=self.login_or_create
-        )
+                                                )
         self.apply_info.grid(row=4, column=0)
 
         self.create = customtkinter.CTkButton(
@@ -100,7 +101,7 @@ class ChatLoginGUI(customtkinter.CTk):
                                             fg_color="gray17",
                                             bg_color="gray17",
                                             command=self.create_account
-        )
+                                            )
         self.create.grid(row=5, column=0, pady=(10, 0))
 
     def chat_gui(self):
@@ -268,9 +269,18 @@ class ChatLoginGUI(customtkinter.CTk):
                     elif msg.split()[0] == "/active":
                         self.online_users.configure(state="normal")
                         self.online_users.delete("0.0", "end")
-                        self.online_users.insert("0.0", f"Online users - {msg.split()[1]}")
+                        active_users = msg.split()[2:]
+                        self.online_users.insert("0.0", "\n".join(active_users))
+
+                        self.online_users.insert("0.0", f"                      Online users - {msg.split()[1]}\n--------------------------------------------------------\n")
+
+
+
 
                         self.online_users.configure(state="disabled")
+
+
+
 
 
                     else:
@@ -278,6 +288,7 @@ class ChatLoginGUI(customtkinter.CTk):
 
             except ConnectionAbortedError:
                 break
+
 
             self.chat_box.configure(state="disabled")
 

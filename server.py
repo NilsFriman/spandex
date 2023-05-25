@@ -80,7 +80,7 @@ def command_handler(client_username, client_info, command, message):
                     names.append(nickname)
                     users[client_username]["name"] = nickname
                     clients[client_username]["name"] = nickname
-                    print(users)
+
                     save_users(users)  # Updates json
                     message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
                     
@@ -124,7 +124,7 @@ def client_handler(client_username, client_info):  # Loop to be threaded for eve
             clients.pop(client_username)
             client_info["connection"].close()  # Disconnects client
             message_sender(f"{disconnected_user} left the room")  # Sends message
-            update_active_users()
+            update_active_users() # Updates the number of active users
             disconnected = True  # Breaks loop
             
         except KeyError:  # Command not in commands dictionary
@@ -147,9 +147,6 @@ def login(client_connection):  # Login function to access your profile
                     message_sender("Granted", client_connection)
                     message_sender(f"{users[username]['name']} has entered the chat!")
 
-
-                    
-
                     thread = threading.Thread(target=client_handler, args=(username, clients[username]))
                     thread.start()
 
@@ -162,7 +159,7 @@ def login(client_connection):  # Login function to access your profile
                         if in_chat == "Entered the chat":
                             break
 
-                    update_active_users()
+                    update_active_users() # Updates the number of active users
 
                 else:
                     message_sender("Denied", client_connection)
@@ -179,11 +176,14 @@ def login(client_connection):  # Login function to access your profile
                 names.append(users[username]["name"])
                 clients[username] = users[username]
                 message_sender("Account created", client_connection)
+
         except ValueError:
             pass
 
 def update_active_users():
-    message_sender(f"/active {len(clients)}")
+    active_users = [clients[user]['name'] for user in clients]
+
+    message_sender(f"/active {len(clients)} {' '.join(active_users)}")
 
 
 
