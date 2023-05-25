@@ -87,7 +87,7 @@ def command_handler(client_username, client_info, command, message):
                     message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
                     
                     message_sender(f"{old_name} has changed nickname to {nickname}")
-                    sleep(0.01)
+                    sleep(0.1)
                     update_active_users()
 
         except IndexError:  # message.split()[1] is out of range, and no nickname was entered
