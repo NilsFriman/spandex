@@ -1,6 +1,7 @@
 import socket
 import threading
 import json
+from time import sleep
 
 # Setting up server
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -55,6 +56,7 @@ def message_sender(message, specified_client_connection=None):  # Send a message
         specified_client_connection.send(message.encode())
     else:  # Public message
         for client in clients.values():
+
             client["connection"].send(message.encode())
 
 
@@ -85,7 +87,8 @@ def command_handler(client_username, client_info, command, message):
                     message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
                     
                     message_sender(f"{old_name} has changed nickname to {nickname}")
-                    # Lägga till så att alla i chatten kan se att en user har bytt namn?
+                    sleep(0.01)
+                    update_active_users()
 
         except IndexError:  # message.split()[1] is out of range, and no nickname was entered
             message_sender("You did not enter a nickname!", client_info["connection"])
