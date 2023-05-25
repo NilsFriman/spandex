@@ -147,20 +147,20 @@ def login(client_connection):  # Login function to access your profile
                     message_sender("Granted", client_connection)
                     message_sender(f"{users[username]['name']} has entered the chat!")
 
-                    thread = threading.Thread(target=client_handler, args=(username, clients[username]))
-                    thread.start()
 
                     logged_in = True
-                    
 
                     while True:
-                        in_chat = client_connection.recv(1024).decode("utf-8")
 
-                        if in_chat == "Entered the chat":
+                        in_chat = client_connection.recv(1024).decode("utf-8")
+                        
+
+                        if in_chat == "Entered":
                             break
 
-                    update_active_users() # Updates the number of active users
-
+                    thread = threading.Thread(target=client_handler, args=(username, clients[username]))
+                    thread.start()
+                    update_active_users()
                 else:
                     message_sender("Denied", client_connection)
             elif username in users:  # Username already occupied

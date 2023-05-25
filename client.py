@@ -2,11 +2,10 @@ import socket
 import threading
 import customtkinter
 import sys
-import json
 
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-socket.connect(("192.168.0.83", 1234))
+socket.connect(("10.158.18.118", 1234))
 
 available_commands = {
 "/nick": "/nick {desired nickname}",
@@ -238,10 +237,14 @@ class ChatLoginGUI(customtkinter.CTk):
         self.login_frame.pack_forget()
         self.chat_gui()
 
+        
+
         self.receive_thread = threading.Thread(target=self.message_receiver)
         self.receive_thread.start()
 
-        socket.send("Entered the chat".encode("utf-8"))
+        socket.send("Entered".encode("utf-8"))
+
+
 
 
 
