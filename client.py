@@ -332,5 +332,7 @@ class ChatLoginGUI(customtkinter.CTk):
         self.chat_box.insert("1.0", error_msg)
 
 
+
+# Runs client
 app = ChatLoginGUI()
 app.mainloop()
