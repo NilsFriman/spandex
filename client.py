@@ -2,6 +2,8 @@ import socket
 import threading
 import customtkinter
 import sys
+import hashlib
+import operator as op
 
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -10,11 +12,11 @@ socket.connect(("10.158.18.108", 1234))
 # Note: Client will receive ConnectionResetError when server shuts down
 
 available_commands = {
-"/nick": "/nick {desired nickname}",
-"/clear": "/clear {amount of lines or \"all\"}",
-"/whisper": "/whisper {username} {message}",
-"delete": "/delete (deletes your last message)"
-}
+                    "/nick": "/nick {desired nickname}",
+                    "/clear": "/clear {amount of lines or \"all\"}",
+                    "/whisper": "/whisper {username} {message}",
+                    "delete": "/delete (deletes your last message)"
+                    }
 
 
 class ChatLoginGUI(customtkinter.CTk):
@@ -71,6 +73,7 @@ class ChatLoginGUI(customtkinter.CTk):
             self.login_frame,
             width=200,
             height=40,
+            show="*",
             corner_radius=8,
             border_width=1,
             placeholder_text="Password"
@@ -104,7 +107,7 @@ class ChatLoginGUI(customtkinter.CTk):
         )
         self.create.grid(row=5, column=0, pady=(10, 0))
 
-    def chat_gui(self):
+    def chat_gui(self):  # Places objects in the app
         self.information_box = customtkinter.CTkFrame(
                                                     self.main_frame,
                                                     width=500,
@@ -174,41 +177,53 @@ class ChatLoginGUI(customtkinter.CTk):
         self.login_label.configure(text=login_label_text)
         self.apply_info.configure(text=apply_info_text)
 
-    def login_or_create(self):
+    def __hash__(self):
+        to_be_hashed = "".join(
+            str(value) for _, value in sorted(self.__dict__.items(),
+                                              key=op.itemgetter(0))
+        )
+        return int.from_bytes(
+            hashlib.md5(to_be_hashed.encode("utf-8")).digest(),
+            "big"
+        )
 
+    def login_or_create(self):  # Client is logging in or creating a new account
         self.error_message.configure(text="")
         username = self.username_entry.get()
         password = self.password_entry.get()
 
-        if not username and not password:
-            self.error_message.configure(text="Please enter a username and password!")
-        elif not username:
-            self.error_message.configure(text="Please enter a username!")
-        elif not password:
-            self.error_message.configure(text="Please enter a password!")
-        elif len(password) < 4:
-            self.error_message.configure(text="Make sure the password is longer than 3 characters!")
-        else:
-            self.username_entry.delete(0, "end")
-            self.password_entry.delete(0, "end")
-            action = "login" if self.apply_info._text == "Login" else "create"
-            socket.send(f"{username} {hash(password)} {action}".encode("utf-8"))
-            response = socket.recv(1024).decode("utf-8")
-
-            if action == "login":
-                if response == "Denied":
-                    self.error_message.configure(text="Wrong username or password!")
+        if username:
+            if password:  # Username and password entered
+                if len(password) < 4:  # Password is too short
+                    self.error_message.configure(text="Make sure the password is longer than 3 characters!")
                 else:
-                    self.enter_chat()
-            elif response == "username not available":
-                self.error_message.configure(text="Username already taken")
-            else:
-                self.error_message.configure(
-                    text="Account created! You can now login!",
-                    text_color="lightgreen"
-                )
+                    self.username_entry.delete(0, "end")
+                    self.password_entry.delete(0, "end")
+                    action = "login" if self.apply_info._text == "Login" else "create"
+                    socket.send(f"{username} {hash(password)} {action}".encode("utf-8"))
+                    response = socket.recv(1024).decode("utf-8")
 
-            self.update_gui("Don't have an account? Click here!", "Login", "Login")
+                    if action == "login":
+                        if response == "Denied":
+                            self.error_message.configure(text="Wrong username or password!")
+                        else:
+                            self.enter_chat()
+                    elif response == "username not available":
+                        self.error_message.configure(text="Username already taken")
+                    else:
+                        self.error_message.configure(
+                            text="Account created! You can now login!",
+                            text_color="lightgreen"
+                        )
+
+                    self.update_gui("Don't have an account? Click here!", "Login", "Login")
+            else:  # Only username entered
+                self.error_message.configure(text="Please enter a password!")
+        else:
+            if password:  # Only password entered
+                self.error_message.configure(text="Please enter a username!")
+            else:  # Nothing entered
+                self.error_message.configure(text="Please enter a username and password!")
 
     def create_account(self):
         
