@@ -192,7 +192,7 @@ class ChatLoginGUI(customtkinter.CTk):
             self.username_entry.delete(0, "end")
             self.password_entry.delete(0, "end")
             action = "login" if self.apply_info._text == "Login" else "create"
-            socket.send(f"{username} {password} {action}".encode("utf-8"))
+            socket.send(f"{username} {hash(password)} {action}".encode("utf-8"))
             response = socket.recv(1024).decode("utf-8")
 
             if action == "login":
