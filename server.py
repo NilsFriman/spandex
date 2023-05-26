@@ -1,6 +1,7 @@
 import socket
 import threading
 import json
+from time import sleep
 
 # Setting up server
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -34,7 +35,6 @@ commands = {
 }
 
 
-
 def save_users(data, userfile="users.json"):  # Save users to file
     with open(userfile, "w") as file:
         json.dump(data, file, indent=4)
@@ -56,6 +56,7 @@ def message_sender(message, specified_client_connection=None):  # Send a message
         specified_client_connection.send(message.encode())
     else:  # Public message
         for client in clients.values():
+
             client["connection"].send(message.encode())
 
 
@@ -75,8 +76,6 @@ def command_handler(client_username, client_info, command, message):
 
                 else:  # Nickname isn't occupied
                     old_name = clients[client_username]["name"]
-
-
                     names.remove(clients[client_username]["name"])
                     names.append(nickname)
                     users[client_username]["name"] = nickname
@@ -86,7 +85,8 @@ def command_handler(client_username, client_info, command, message):
                     message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
                     
                     message_sender(f"{old_name} has changed nickname to {nickname}")
-                    # Lägga till så att alla i chatten kan se att en user har bytt namn?
+                    sleep(0.1)
+                    update_active_users()
 
         except IndexError:  # message.split()[1] is out of range, and no nickname was entered
             message_sender("You did not enter a nickname!", client_info["connection"])
@@ -125,7 +125,7 @@ def client_handler(client_username, client_info):  # Loop to be threaded for eve
             clients.pop(client_username)
             client_info["connection"].close()  # Disconnects client
             message_sender(f"{disconnected_user} left the room")  # Sends message
-            update_active_users() # Updates the number of active users
+            update_active_users()  # Updates the number of active users
             disconnected = True  # Breaks loop
             
         except KeyError:  # Command not in commands dictionary
@@ -144,24 +144,19 @@ def login(client_connection):  # Login function to access your profile
 
                     clients[username]["connection"] = client_connection
 
-
                     message_sender("Granted", client_connection)
                     message_sender(f"{users[username]['name']} has entered the chat!")
 
-                    thread = threading.Thread(target=client_handler, args=(username, clients[username]))
-                    thread.start()
-
                     logged_in = True
-                    
 
                     while True:
                         in_chat = client_connection.recv(1024).decode("utf-8")
-
-                        if in_chat == "Entered the chat":
+                        if in_chat == "Entered":
                             break
 
-                    update_active_users() # Updates the number of active users
-
+                    thread = threading.Thread(target=client_handler, args=(username, clients[username]))
+                    thread.start()
+                    update_active_users()
                 else:
                     message_sender("Denied", client_connection)
             elif username in users:  # Username already occupied
@@ -181,11 +176,11 @@ def login(client_connection):  # Login function to access your profile
         except ValueError:
             pass
 
+
 def update_active_users():
     active_users = [clients[user]['name'] for user in clients]
 
     message_sender(f"/active {len(clients)} {' '.join(active_users)}")
-
 
 
 def connections():  # Function to accept new connections
