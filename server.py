@@ -34,7 +34,6 @@ commands = {
 }
 
 
-
 def save_users(data, userfile="users.json"):  # Save users to file
     with open(userfile, "w") as file:
         json.dump(data, file, indent=4)
@@ -76,8 +75,6 @@ def command_handler(client_username, client_info, command, message):
 
                 else:  # Nickname isn't occupied
                     old_name = clients[client_username]["name"]
-
-
                     names.remove(clients[client_username]["name"])
                     names.append(nickname)
                     users[client_username]["name"] = nickname
@@ -127,7 +124,7 @@ def client_handler(client_username, client_info):  # Loop to be threaded for eve
             clients.pop(client_username)
             client_info["connection"].close()  # Disconnects client
             message_sender(f"{disconnected_user} left the room")  # Sends message
-            update_active_users() # Updates the number of active users
+            update_active_users()  # Updates the number of active users
             disconnected = True  # Breaks loop
             
         except KeyError:  # Command not in commands dictionary
@@ -146,18 +143,13 @@ def login(client_connection):  # Login function to access your profile
 
                     clients[username]["connection"] = client_connection
 
-
                     message_sender("Granted", client_connection)
                     message_sender(f"{users[username]['name']} has entered the chat!")
-
 
                     logged_in = True
 
                     while True:
-
                         in_chat = client_connection.recv(1024).decode("utf-8")
-                        
-
                         if in_chat == "Entered":
                             break
 
@@ -183,11 +175,11 @@ def login(client_connection):  # Login function to access your profile
         except ValueError:
             pass
 
+
 def update_active_users():
     active_users = [clients[user]['name'] for user in clients]
 
     message_sender(f"/active {len(clients)} {' '.join(active_users)}")
-
 
 
 def connections():  # Function to accept new connections
