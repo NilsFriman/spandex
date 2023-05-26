@@ -1,6 +1,8 @@
 import socket
 import threading
 import customtkinter
+import sys
+
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 socket.connect(("10.158.18.108", 1234))
@@ -8,11 +10,10 @@ socket.connect(("10.158.18.108", 1234))
 # Note: Client will receive ConnectionResetError when server shuts down
 
 available_commands = {
-    "/nick": "/nick {desired nickname}",
-    "/admin": "/admin",
-    "/clear": "/clear {amount of lines}",
-    "/whisper": "/whisper {username} {message}",
-    "delete": "/delete (deletes your last message)"
+"/nick": "/nick {desired nickname}",
+"/clear": "/clear {amount of lines or \"all\"}",
+"/whisper": "/whisper {username} {message}",
+"delete": "/delete (deletes your last message)"
 }
 
 
@@ -21,40 +22,49 @@ class ChatLoginGUI(customtkinter.CTk):
         super().__init__()
         self._set_appearance_mode("dark")
         self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.close_window)
 
-        self.main_frame = customtkinter.CTkFrame(self, width=500, height=584, corner_radius=5, fg_color="#1D1E1E")
+        self.closed = False
+
+        self.main_frame = customtkinter.CTkFrame(
+                                                self,
+                                                width=500,
+                                                height=584,
+                                                corner_radius=5,
+                                                fg_color="#1D1E1E"
+        )
         self.main_frame.pack()
         self.main_frame.pack_propagate(False)
         self.main_frame.grid_propagate(False)
 
         self.login_frame = customtkinter.CTkFrame(
-            self.main_frame,
-            width=300,
-            height=350,
-            corner_radius=10,
-            border_width=1,
-            border_color="#830303",
-            fg_color="#272626"
-        )
+                                                    self.main_frame,
+                                                    width=300,
+                                                    height=350,
+                                                    corner_radius=10,
+                                                    border_width=1,
+                                                    border_color="#830303",
+                                                    fg_color="#272626"
+                                                    )
         self.login_frame.pack(expand=True)
         self.login_frame.grid_propagate(False)
 
         self.login_label = customtkinter.CTkLabel(
-            self.login_frame,
-            text="Login",
-            font=("Arial", 20),
-            text_color="Red"
-        )
+                                                self.login_frame,
+                                                text="Login",
+                                                font=("Arial", 20),
+                                                text_color="Red"
+                                                )
         self.login_label.grid(row=0, column=0, pady=(25, 0))
 
         self.username_entry = customtkinter.CTkEntry(
-            self.login_frame,
-            width=200,
-            height=40,
-            corner_radius=8,
-            border_width=1,
-            placeholder_text="Username"
-        )
+                                                    self.login_frame,
+                                                    width=200,
+                                                    height=40,
+                                                    corner_radius=8,
+                                                    border_width=1,
+                                                    placeholder_text="Username"
+                                                    )
         self.username_entry.grid(row=1, column=0, pady=(35, 0), padx=50)
 
         self.password_entry = customtkinter.CTkEntry(
@@ -182,7 +192,7 @@ class ChatLoginGUI(customtkinter.CTk):
             self.username_entry.delete(0, "end")
             self.password_entry.delete(0, "end")
             action = "login" if self.apply_info._text == "Login" else "create"
-            socket.send(f"{username} {hash(password)} {action}".encode("utf-8"))
+            socket.send(f"{username} {password} {action}".encode("utf-8"))
             response = socket.recv(1024).decode("utf-8")
 
             if action == "login":
