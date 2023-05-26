@@ -7,6 +7,7 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_host = socket.gethostbyname(socket.gethostname())
 server_port = 1234
 # owo
+
 try:
     server_socket.bind(("", server_port))  # Binds server to port
 except socket.error as error:

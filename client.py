@@ -224,6 +224,7 @@ class ChatLoginGUI(customtkinter.CTk):
 
             self.update_gui("Don't have an account? Click here!", "Login", "Login")
 
+
     def create_account(self):
         
         self.error_message.configure(text="")
