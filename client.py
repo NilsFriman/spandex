@@ -2,7 +2,7 @@ import socket
 import threading
 import customtkinter
 import sys
-
+from time import sleep 
 
 
 
@@ -188,6 +188,8 @@ class ChatLoginGUI(customtkinter.CTk):
         self.apply_info.configure(state="disabled")
         self.apply_info.after(1000, lambda: self.apply_info.configure(state="normal"))
 
+        sleep(0.1)
+        
         self.error_message.configure(text="")
 
         username = self.username_entry.get()
