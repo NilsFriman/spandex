@@ -2,27 +2,32 @@ import socket
 import threading
 import customtkinter
 import sys
-import json
 
 
-socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-socket.connect(("192.168.0.83", 1234))
 
-available_commands = {
-"/nick": "/nick {desired nickname}",
-"/clear": "/clear {amount of lines or \"all\"}",
-"/whisper": "/whisper {username} {message}",
-"delete": "/delete (deletes your last message)"
-}
+
 
 class ChatLoginGUI(customtkinter.CTk):
 
     def __init__(self):
         super().__init__()
+        self.available_commands = {
+                                "/nick": "/nick {desired nickname}",
+                                "/clear": "/clear {amount of lines or \"all\"}",
+                                "/whisper": "/whisper {username} {message}",
+                                "delete": "/delete (deletes your last message)"
+                                }
+        
+
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect(("192.168.0.83", 1234))
+
+
+
+
         self._set_appearance_mode("dark")
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.close_window)
-
         self.closed = False
 
         self.main_frame = customtkinter.CTkFrame(
@@ -125,7 +130,7 @@ class ChatLoginGUI(customtkinter.CTk):
                                                 bg_color="#1D1E1E",
                                                 text_color="lightgreen"
                                                 )
-        self.commands.insert("0.0", "                 Available commands\n" + "\n".join(available_commands.values()))
+        self.commands.insert("0.0", "                 Available commands\n" + "\n".join(self.available_commands.values()))
         self.commands.grid(row=0, column=0)
         self.commands.configure(state="disabled")
 
@@ -170,7 +175,7 @@ class ChatLoginGUI(customtkinter.CTk):
     def close_window(self):
         self.closed = True
 
-        socket.close()
+        self.socket.close()
         sys.exit()
 
 
@@ -180,6 +185,9 @@ class ChatLoginGUI(customtkinter.CTk):
         self.apply_info.configure(text=apply_info_text)
 
     def login_or_create(self):
+        self.apply_info.configure(state="disabled")
+        self.apply_info.after(1000, lambda: self.apply_info.configure(state="normal"))
+
         self.error_message.configure(text="")
 
         username = self.username_entry.get()
@@ -201,8 +209,8 @@ class ChatLoginGUI(customtkinter.CTk):
             self.username_entry.delete(0, "end")
             self.password_entry.delete(0, "end")
             action = "login" if self.apply_info._text == "Login" else "create"
-            socket.send(f"{username} {password} {action}".encode("utf-8"))
-            response = socket.recv(1024).decode("utf-8")
+            self.socket.send(f"{username} {password} {action}".encode("utf-8"))
+            response = self.socket.recv(1024).decode("utf-8")
 
             if action == "login":
                 if response == "Denied":
@@ -242,14 +250,14 @@ class ChatLoginGUI(customtkinter.CTk):
         self.receive_thread = threading.Thread(target=self.message_receiver)
         self.receive_thread.start()
 
-        socket.send("Entered the chat".encode("utf-8"))
+        self.socket.send("Entered the chat".encode("utf-8"))
 
 
 
     def message_receiver(self):
         while not self.closed:    
             try:
-                msg = socket.recv(1024).decode("utf-8")
+                msg = self.socket.recv(1024).decode("utf-8")
 
                 if msg:
                     self.chat_box.configure(state="normal")
@@ -306,7 +314,7 @@ class ChatLoginGUI(customtkinter.CTk):
 
             else:
 
-                socket.send(message.encode("utf-8"))
+                self.socket.send(message.encode("utf-8"))
 
             self.chat_entry.delete(0, "end")
 
