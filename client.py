@@ -262,6 +262,7 @@ class ChatLoginGUI(customtkinter.CTk):
                 msg = self.socket.recv(1024).decode("utf-8")
 
                 if msg:
+
                     self.chat_box.configure(state="normal")
 
                     if msg.split()[0] == "/delete":
@@ -306,7 +307,9 @@ class ChatLoginGUI(customtkinter.CTk):
 
     def message_sender(self, event):
 
-        if message := self.chat_entry.get():
+        message = self.chat_entry.get()
+
+        if message and not message.isspace():
 
             if message.split()[0] == "/clear":
 
