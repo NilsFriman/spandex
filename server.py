@@ -1,6 +1,7 @@
 import socket
 import threading
 import json
+from time import sleep
 
 
 
@@ -159,19 +160,21 @@ class ChatServerHost():
                         self.message_sender("Granted", client_connection)
                         self.message_sender(f"{self.users[username]['name']} has entered the chat!")
 
-                        thread = threading.Thread(target=self.client_handler, args=(username, self.clients[username]))
-                        thread.start()
+
 
                         logged_in = True
                         
-
+                        
                         while True:
                             in_chat = client_connection.recv(1024).decode("utf-8")
 
-                            if in_chat == "Entered the chat":
+                            if in_chat == "Entered":
                                 break
 
-                        self.update_active_users() # Updates the number of active users
+                        self.update_active_users()
+                        
+                        thread = threading.Thread(target=self.client_handler, args=(username, self.clients[username]))
+                        thread.start()
 
                     else:
                         self.message_sender("Denied", client_connection)
@@ -194,6 +197,7 @@ class ChatServerHost():
 
     def update_active_users(self):
         active_users = [self.clients[user]['name'] for user in self.clients]
+        print(active_users)
 
         self.message_sender(f"/active {len(self.clients)} {' '.join(active_users)}")
 

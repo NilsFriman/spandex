@@ -20,7 +20,7 @@ class ChatLoginGUI(customtkinter.CTk):
         
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect(("192.168.0.83", 1234))
+        self.socket.connect(("10.158.18.12", 1234))
 
 
 
@@ -252,7 +252,7 @@ class ChatLoginGUI(customtkinter.CTk):
         self.receive_thread = threading.Thread(target=self.message_receiver)
         self.receive_thread.start()
 
-        self.socket.send("Entered the chat".encode("utf-8"))
+        self.socket.send("Entered".encode("utf-8"))
 
 
 
@@ -262,6 +262,7 @@ class ChatLoginGUI(customtkinter.CTk):
                 msg = self.socket.recv(1024).decode("utf-8")
 
                 if msg:
+                    print(msg)
                     self.chat_box.configure(state="normal")
 
                     if msg.split()[0] == "/delete":
