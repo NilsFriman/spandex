@@ -98,6 +98,9 @@ class ChatServerHost():
                         self.message_sender(f"Your new nickname is now \"{nickname}\"", client_info["connection"])
                         
                         self.message_sender(f"{old_name} has changed nickname to {nickname}")
+
+                        sleep(0.3)
+                        self.update_active_users()
                         # Lägga till så att alla i chatten kan se att en user har bytt namn?
 
             except IndexError:  # message.split()[1] is out of range, and no nickname was entered
@@ -172,7 +175,7 @@ class ChatServerHost():
                                 break
 
                         self.update_active_users()
-                        
+
                         thread = threading.Thread(target=self.client_handler, args=(username, self.clients[username]))
                         thread.start()
 
@@ -197,7 +200,6 @@ class ChatServerHost():
 
     def update_active_users(self):
         active_users = [self.clients[user]['name'] for user in self.clients]
-        print(active_users)
 
         self.message_sender(f"/active {len(self.clients)} {' '.join(active_users)}")
 

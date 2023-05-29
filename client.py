@@ -262,7 +262,6 @@ class ChatLoginGUI(customtkinter.CTk):
                 msg = self.socket.recv(1024).decode("utf-8")
 
                 if msg:
-                    print(msg)
                     self.chat_box.configure(state="normal")
 
                     if msg.split()[0] == "/delete":
