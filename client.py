@@ -29,6 +29,9 @@ class ChatLoginGUI(customtkinter.CTk):
                                 "delete": "/delete (deletes your last message)"
                                 }
 
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect(("10.158.18.12", 1234))
+
         self._set_appearance_mode("dark")
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.close_window)
