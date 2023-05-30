@@ -194,7 +194,9 @@ class ChatLoginGUI(customtkinter.CTk):
         self.closed = True
 
         self.socket.close()
+        self.destroy()
         sys.exit()
+
 
 
     def update_gui(self, create_text, login_label_text, apply_info_text):
@@ -323,6 +325,9 @@ class ChatLoginGUI(customtkinter.CTk):
 
             except ConnectionAbortedError:
                 break
+
+            except ConnectionResetError:
+                self.close_window()
 
 
 
