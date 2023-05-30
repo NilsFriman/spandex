@@ -45,7 +45,6 @@ class ChatLoginGUI(customtkinter.CTk):
         self.main_frame.pack_propagate(False)
         self.main_frame.grid_propagate(False)
 
-
         # Login gui
         self.login_frame = customtkinter.CTkFrame(
                                                     self.main_frame,
@@ -126,7 +125,6 @@ class ChatLoginGUI(customtkinter.CTk):
                                                     fg_color="#1D1E1E"
                                                     )
 
-
         self.commands = customtkinter.CTkTextbox(
                                                 self.information_box,
                                                 width=250,
@@ -149,7 +147,6 @@ class ChatLoginGUI(customtkinter.CTk):
                                                     text_color="lightgreen",
                                                     state="disabled"
                                                     )
-        
 
         self.chat_box = customtkinter.CTkTextbox(
                                                 self.main_frame,
@@ -161,7 +158,6 @@ class ChatLoginGUI(customtkinter.CTk):
                                                 text_color="lightgreen",
                                                 state="disabled"
                                                 )
-
 
         self.chat_entry = customtkinter.CTkEntry(
                                                 self.main_frame,
@@ -175,7 +171,6 @@ class ChatLoginGUI(customtkinter.CTk):
                                                 )
         # -----------------------------------------------
         self.bind("<Return>", self.message_sender)
-
 
     def chat_gui(self):
         self.information_box.grid(row=0, column=0)
@@ -191,16 +186,12 @@ class ChatLoginGUI(customtkinter.CTk):
 
         self.chat_entry.grid(row=2, column=0)
 
-
-
-
     def close_window(self):
         self.closed = True
 
         self.socket.close()
         self.destroy()
         sys.exit()
-
 
     def update_gui(self, create_text, login_label_text, apply_info_text):
         self.create.configure(text=create_text)
@@ -262,10 +253,10 @@ class ChatLoginGUI(customtkinter.CTk):
 
             self.update_gui("Don't have an account? Click here!", "Login", "Login")
 
-
     def create_account(self):
         
         self.error_message.configure(text="")
+
         if self.create._text == "Don't have an account? Click here!":
             self.update_gui("Login to an existing account", "Create your account!", "Create")
                     
@@ -281,8 +272,6 @@ class ChatLoginGUI(customtkinter.CTk):
         self.receive_thread.start()
 
         self.socket.send("Entered".encode("utf-8"))
-
-
 
     def message_receiver(self):
         while not self.closed:    
@@ -304,7 +293,6 @@ class ChatLoginGUI(customtkinter.CTk):
                                 self.chat_box.delete("0.0", "end")
                                 self.chat_box.insert("0.0", "\n".join(chat_history))
                                 break
-                        
 
                     elif msg.split()[0] == "/active":
                         self.online_users.configure(state="normal")
@@ -314,14 +302,7 @@ class ChatLoginGUI(customtkinter.CTk):
 
                         self.online_users.insert("0.0", f"                      Online users - {msg.split()[1]}\n--------------------------------------------------------\n")
 
-
-
-
                         self.online_users.configure(state="disabled")
-
-
-
-
 
                     else:
                         self.chat_box.insert("0.0", msg + "\n")
@@ -331,11 +312,7 @@ class ChatLoginGUI(customtkinter.CTk):
 
             except ConnectionResetError:
                 self.close_window()
-
-
-
             self.chat_box.configure(state="disabled")
-
 
     def message_sender(self, event):
 
@@ -380,7 +357,10 @@ class ChatLoginGUI(customtkinter.CTk):
         self.chat_box.insert("1.0", error_msg)
 
 
+def main():  # Runs client
+    if __name__ == "__main__":
+        app = ChatLoginGUI()
+        app.mainloop()
 
-# Runs client
-app = ChatLoginGUI()
-app.mainloop()
+
+main()
