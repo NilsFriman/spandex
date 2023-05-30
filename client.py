@@ -41,6 +41,8 @@ class ChatLoginGUI(customtkinter.CTk):
         self.main_frame.pack_propagate(False)
         self.main_frame.grid_propagate(False)
 
+
+        # Login gui
         self.login_frame = customtkinter.CTkFrame(
                                                     self.main_frame,
                                                     width=300,
@@ -109,7 +111,9 @@ class ChatLoginGUI(customtkinter.CTk):
                                             )
         self.create.grid(row=5, column=0, pady=(10, 0))
 
-    def chat_gui(self):
+        # -------------------------------------------------------
+
+        # Chat gui
         self.information_box = customtkinter.CTkFrame(
                                                     self.main_frame,
                                                     width=500,
@@ -117,8 +121,7 @@ class ChatLoginGUI(customtkinter.CTk):
                                                     corner_radius=8,
                                                     fg_color="#1D1E1E"
                                                     )
-        self.information_box.grid(row=0, column=0)
-        self.information_box.grid_propagate(False)
+
 
         self.commands = customtkinter.CTkTextbox(
                                                 self.information_box,
@@ -130,9 +133,6 @@ class ChatLoginGUI(customtkinter.CTk):
                                                 bg_color="#1D1E1E",
                                                 text_color="lightgreen"
                                                 )
-        self.commands.insert("0.0", "                 Available commands\n" + "\n".join(self.available_commands.values()))
-        self.commands.grid(row=0, column=0)
-        self.commands.configure(state="disabled")
 
         self.online_users = customtkinter.CTkTextbox(
                                                     self.information_box,
@@ -145,7 +145,7 @@ class ChatLoginGUI(customtkinter.CTk):
                                                     text_color="lightgreen",
                                                     state="disabled"
                                                     )
-        self.online_users.grid(row=0, column=1)
+        
 
         self.chat_box = customtkinter.CTkTextbox(
                                                 self.main_frame,
@@ -157,7 +157,7 @@ class ChatLoginGUI(customtkinter.CTk):
                                                 text_color="lightgreen",
                                                 state="disabled"
                                                 )
-        self.chat_box.grid(row=1, column=0)
+
 
         self.chat_entry = customtkinter.CTkEntry(
                                                 self.main_frame,
@@ -169,8 +169,26 @@ class ChatLoginGUI(customtkinter.CTk):
                                                 text_color="lightgreen",
                                                 placeholder_text="Enter a message"
                                                 )
-        self.chat_entry.grid(row=2, column=0)
+        # -----------------------------------------------
         self.bind("<Return>", self.message_sender)
+
+
+    def chat_gui(self):
+        self.information_box.grid(row=0, column=0)
+        self.information_box.grid_propagate(False)
+
+        self.commands.insert("0.0", "                 Available commands\n" + "\n".join(self.available_commands.values()))
+        self.commands.grid(row=0, column=0)
+        self.commands.configure(state="disabled")
+
+        self.online_users.grid(row=0, column=1)
+
+        self.chat_box.grid(row=1, column=0)
+
+        self.chat_entry.grid(row=2, column=0)
+
+
+
 
     def close_window(self):
         self.closed = True
@@ -190,7 +208,7 @@ class ChatLoginGUI(customtkinter.CTk):
 
         sleep(0.1)
         
-        self.error_message.configure(text="")
+        self.error_message.configure(text="")   
 
         username = self.username_entry.get()
         password = self.password_entry.get()
@@ -211,7 +229,12 @@ class ChatLoginGUI(customtkinter.CTk):
             self.username_entry.delete(0, "end")
             self.password_entry.delete(0, "end")
             action = "login" if self.apply_info._text == "Login" else "create"
-            self.socket.send(f"{username} {password} {action}".encode("utf-8"))
+
+            try:
+                self.socket.send(f"{username} {password} {action}".encode("utf-8"))
+            except ConnectionResetError:
+                self.close_window()
+
             response = self.socket.recv(1024).decode("utf-8")
 
             if action == "login":
@@ -302,6 +325,7 @@ class ChatLoginGUI(customtkinter.CTk):
                 break
 
 
+
             self.chat_box.configure(state="disabled")
 
 
@@ -318,8 +342,10 @@ class ChatLoginGUI(customtkinter.CTk):
                 self.chat_box.configure(state="disabled")
 
             else:
-
-                self.socket.send(message.encode("utf-8"))
+                try:
+                    self.socket.send(message.encode("utf-8"))
+                except OSError:
+                    self.close_window()
 
             self.chat_entry.delete(0, "end")
 
