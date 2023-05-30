@@ -4,6 +4,7 @@ import customtkinter
 import sys
 import hashlib
 import operator as op
+import json
 
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -17,6 +18,16 @@ available_commands = {
                     "/whisper": "/whisper {username} {message}",
                     "delete": "/delete (deletes your last message)"
                     }
+
+
+def setkey(key: bytes, location="encryptionkey.json"):  # Spara klientens nyckel
+    with open(location, "w", encoding="utf-8") as file:
+        json.dump(str(key), file)
+
+
+def getkey(location="encryptionkey.json"):  # Hämta klientens nyckel som byte
+    with open(location, "r", encoding="utf-8") as file:
+        return bytes(json.load(file), "utf-8")[2:-1]
 
 
 class ChatLoginGUI(customtkinter.CTk):
@@ -177,16 +188,6 @@ class ChatLoginGUI(customtkinter.CTk):
         self.login_label.configure(text=login_label_text)
         self.apply_info.configure(text=apply_info_text)
 
-    def __hash__(self):
-        to_be_hashed = "".join(
-            str(value) for _, value in sorted(self.__dict__.items(),
-                                              key=op.itemgetter(0))
-        )
-        return int.from_bytes(
-            hashlib.md5(to_be_hashed.encode("utf-8")).digest(),
-            "big"
-        )
-
     def login_or_create(self):  # Client is logging in or creating a new account
         self.error_message.configure(text="")
         username = self.username_entry.get()
@@ -292,5 +293,6 @@ class ChatLoginGUI(customtkinter.CTk):
         self.chat_box.insert("1.0", error_msg)
 
 
-app = ChatLoginGUI()
-app.mainloop()
+def main():
+    app = ChatLoginGUI()
+    app.mainloop()
